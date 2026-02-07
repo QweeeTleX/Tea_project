@@ -1,0 +1,27 @@
+:root {
+  color: #2b2015;
+  background-color: #f4efe6;
+  font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f4efe6;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
