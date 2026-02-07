@@ -130,7 +130,6 @@
   border-color: var(--subitem-hover-border);
   transform: scale(1.4);
   z-index: 2;
-
 }
 
 
@@ -148,6 +147,18 @@
   word-break: break-word;
   font-size: 7px;
 }
+
+.card__subgrid:hover .card__subitem {
+  filter: blur(1.5px);
+  opacity: 0.6;
+  transition: filter 150ms ease, opacity 150ms ease;
+}
+
+.card__subgrid:hover .card__subitem:hover {
+  filter: none;
+  opacity: 1;
+}
+
 
 
 
