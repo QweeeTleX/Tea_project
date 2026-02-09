@@ -13,25 +13,28 @@ function Product() {
 			desc: "Описание будет позже"
 		}
 
-	return (
-		<div className="product-page">
-			<Link className="product__back" to={`/catalog/${categoryId}/${subId}`}>
-				Назад
-			</Link>
+return (
+  <div className="product-page">
+    <Link className="product__back" to={`/catalog/${categoryId}/${subId}`}>
+      Назад
+    </Link>
 
-			<div className="product">
-				<div className="product__card">
-					<div className="product__thumb" />
-					<div className="product__name">{product.name}</div>
-				</div>
+    <div className="product">
+      <div className="product__card">
+        <div className="product__thumb" />
+        <div className="product__name">{product.name}</div>
+      </div>
 
-				<div className="product__info">
-					<div className="product__title">{product.name}</div>
-					<div className="product__price">{product.price}</div>
-					<div className="product__desc">{product.desc}</div>
-				</div>
-			</div>
-		</div>
-	)	
+      <div className="product__right">
+        <div className="product__info">
+          <div className="product__title">{product.name}</div>
+          <div className="product__price">{product.price}</div>
+        </div>
+
+        <div className="product__descbox">{product.desc}</div>
+      </div>
+    </div>
+  </div>
+)
 }
 export default Product
