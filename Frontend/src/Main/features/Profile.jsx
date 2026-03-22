@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react"
+﻿import { useEffect, useState } from "react"
 import "../../Styles/profile.css"
 import ProfileIC from "../../Images/profile_icon.svg"
+import { Link } from "react-router-dom"
+import { useAuth } from "../auth/AuthContext.jsx"
 
 function Profile() {
   const [isOpen, setIsOpen] = useState(false)
+  const { can } = useAuth()
 
   useEffect(() => {
     if (!isOpen) return
@@ -45,9 +48,20 @@ function Profile() {
             aria-modal="true"
             aria-label="Site settings"
             onClick={(event) => event.stopPropagation()}
-          >    {/*шапка*/}
+          >
             <div className="profile-modal__header">
               <h2 className="profile-modal__title">Site settings</h2>
+              <div className="profile-modal__header-right">
+                {can("admin:enter") && (
+                  <Link
+                    to="/admin"
+                    className="profile-modal__admin-btn"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin
+                  </Link>  
+                )}
+              </div>
               <button
                 type="button"
                 className="profile-modal__close"
@@ -56,10 +70,9 @@ function Profile() {
               >
                 x
               </button>
-            </div>
-						{/*тело*/}
+            </div>    
             <div className="profile-modal__body">
-              <div className="setting-grid">
+              <div className="settings-grid">
                 <div className="setting-card">
                   <div className="setting-card__label">Theme</div>
                   <select className="setting-card__control" defaultValue="light">
@@ -102,7 +115,7 @@ function Profile() {
                 </div>
               </div>
             </div>
-							{/*basement епта*/}
+
             <div className="profile-modal__footer">
               <button type="button" className="settings-btn settings-btn--ghost">
                 Reset
