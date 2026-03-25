@@ -7,7 +7,9 @@ const fs = require("fs")
 const path = require("path")
 
 const app = express()
+const imagesPath = path.join(__dirname, "..", "images")
 
+app.use("/images", express.static(imagesPath))
 app.use(express.json())
 app.use(cookieParser())
 app.use(
