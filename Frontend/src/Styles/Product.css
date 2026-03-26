@@ -59,6 +59,24 @@
 .product__name {
 	font-size: 16px;
 	color: #2b2015;
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: -0.01em;
+}
+
+.product__caption {
+	padding-top: 14px;
+	border-top: 1px solid rgba(43, 32, 21, 0.08);
+	display: grid;
+	gap: 6px;
+}
+
+.product__meta {
+	font-size: 13px;
+	line-height: 1.4;
+	color: rgba(43, 32, 21, 0.65);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
 }
 
 .product__info {
@@ -76,6 +94,37 @@
 .product__price {
 	font-size: 18px;
 	color: rgba(43, 32, 21, 0.8);
+}
+
+.product__cart-btn {
+	margin-top: 14px;
+	width: 100%;
+	min-height: 48px;
+	border: none;
+	border-radius: 14px;
+	background: #2b2015;
+	color: #fffdf9;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.product__cart-btn:hover {
+	background: #3a2b1d;
+	transform: translateY(-1px);
+	box-shadow: 0 10px 24px rgba(43, 32, 21, 0.18);
+}
+
+.product__cart-btn:active {
+	transform: translateY(0);
+	box-shadow: none;
+}
+
+.product__cart-btn:focus-visible {
+	outline: 2px solid rgba(43, 32, 21, 0.35);
+	outline-offset: 3px;
 }
 
 .product__right {

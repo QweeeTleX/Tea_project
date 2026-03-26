@@ -82,13 +82,21 @@ function Product() {
                 />
               ) : null}
             </div>
-            <div className="product__name">{product.name}</div>
+            <div className="product__caption">
+              <div className="product__name">{product.name}</div>
+              <div className="product__meta">Карточка товара</div>
+            </div>
           </div>
 
           <div className="product__right">
             <div className="product__info">
               <div className="product__title">{product.name}</div>
               <div className="product__price">{product.price}</div>
+
+              <button type="button" className="product__cart-btn">
+                Добавить в корзину
+              </button>
+
             </div>
 
             <div className="product__descbox">{product.desc}</div>
