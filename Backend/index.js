@@ -219,6 +219,18 @@ app.get("/api/catalog/:categoryId/:subId", (req, res) => {
   })
 })
 
+app.get("/api/product/:productId", (req, res) => {
+  const { productId } = req.params
+
+  const product = cards.find((card) => card.id === productId)
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" })
+  }
+
+  res.json(product)
+})
+
 
 app.get("/api/auth/me", auth, (req, res) => {
   const user = users.find((u) => u.id === req.user.sub)
