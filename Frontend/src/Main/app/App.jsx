@@ -2,7 +2,8 @@
 import Home from "../pages/Home.jsx"
 import Subcategory from "../pages/Subcategory.jsx"
 import Product from "../pages/Product.jsx"
-import Profile from "../features/Profile.jsx"
+import Cart from "../pages/Cart.jsx"
+import AppActions from "../features/AppActions.jsx"
 import Admin from "../pages/Admin.jsx"
 import RequirePermission from "../auth/RequirePermission.jsx"
 import Login from "../pages/Login.jsx"
@@ -12,7 +13,7 @@ import Login from "../pages/Login.jsx"
 function Layout() {
   return (
     <>
-      <Profile />
+      <AppActions />
       <Outlet />
     </>
   )
@@ -33,6 +34,7 @@ function App() {
         }
       />  
         <Route path="/" element={<Home />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/catalog/:categoryId/:subId" element={<Subcategory />} />
         <Route path="/catalog/:categoryId/:subId/:productId" element={<Product />} />
       </Route>

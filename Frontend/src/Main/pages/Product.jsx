@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react"
 import { Link, useLocation, useParams } from "react-router-dom"
+import { useCart } from "../cart/CartContext.jsx"
 import "../../Styles/Product.css"
 
 const API_BASE = "http://localhost:5000/api"
@@ -15,6 +16,7 @@ function resolveImageSrc(src) {
 function Product() {
   const { categoryId, subId, productId } = useParams()
   const { state } = useLocation()
+  const { addItem } = useCart()
 
   const [product, setProduct] = useState(state?.product ?? null)
   const [isLoading, setIsLoading] = useState(!state?.product)
@@ -60,6 +62,19 @@ function Product() {
     }
   }, [productId])
 
+  const handleAddToCart = () => {
+    if (!product) return
+
+    addItem({
+      id: product.id,
+      name: product.name,
+      cost: product.cost ?? 0,
+      pic: product.pic || [],
+      categoryId,
+      subId,
+    })
+  }
+
   return (
     <div className="product-page">
       <Link className="product__back" to={`/catalog/${categoryId}/${subId}`}>
@@ -93,7 +108,11 @@ function Product() {
               <div className="product__title">{product.name}</div>
               <div className="product__price">{product.price}</div>
 
-              <button type="button" className="product__cart-btn">
+              <button
+                type="button"
+                className="product__cart-btn"
+                onClick={handleAddToCart}
+              >
                 Добавить в корзину
               </button>
 
