@@ -2,6 +2,14 @@
 
 Интернет-магазин чая и чайной посуды с каталогом, карточками товаров, корзиной и ролевым доступом в админ-зону.
 
+![Tea Home](Frontend/src/Images/Tea_home.png)
+![Tea Category Hover](Frontend/src/Images/Tea_category_hover.png)
+![Tea Subcategory Hover](Frontend/src/Images/Tea_subcategory_hover.png)
+![Tea Subcategory Page](Frontend/src/Images/Tea_subcategory_page.png)
+![Tea Product Page](Frontend/src/Images/Tea_product_page.png)
+![Tea Cart Page](Frontend/src/Images/Tea_cart_page.png)
+![Tea Settings](Frontend/src/Images/Tea_settings.png)
+
 ## ✨ Что уже реализовано
 
 - 🫖 Каталог по категориям и подкатегориям (`tea` и `wares`)
@@ -94,13 +102,6 @@ npm run dev
 ## ⚙️ Переменные окружения
 
 - `JWT_SECRET` - секрет подписи JWT (если не задан, используется dev-значение из `Backend/index.js`).
-
-## 🖼️ Скриншоты
-
-![Home](Frontend/src/Images/Tea_home.png)
-![Subcategory](Frontend/src/Images/Tea_subcategory_page.png)
-![Product](Frontend/src/Images/Tea_product_page.png)
-![Cart](Frontend/src/Images/Tea_cart_page.png)
 
 ## 🧭 Текущий статус
 
