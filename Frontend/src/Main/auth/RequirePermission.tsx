@@ -1,7 +1,13 @@
+import type { ReactNode } from "react"
 import { Navigate, useLocation } from "react-router-dom"
-import { useAuth } from "./AuthContext.jsx"
+import { useAuth } from "./AuthContext"
 
-function RequirePermission({ permission, children }) {
+type RequirePermissionProps = {
+	permission: string
+	children: ReactNode
+}
+
+function RequirePermission({ permission, children }: RequirePermissionProps) {
 	const { isLoading, can } = useAuth()
 	const location = useLocation()
 

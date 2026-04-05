@@ -1,8 +1,9 @@
 ﻿import { useEffect, useState } from "react"
+import type { MouseEvent as ReactMouseEvent } from "react"
 import "../../Styles/profile.css"
 import ProfileIC from "../../Images/profile_icon.svg"
 import { Link } from "react-router-dom"
-import { useAuth } from "../auth/AuthContext.jsx"
+import { useAuth } from "../auth/AuthContext"
 
 function Profile() {
   const [isOpen, setIsOpen] = useState(false)
@@ -11,7 +12,7 @@ function Profile() {
   useEffect(() => {
     if (!isOpen) return
 
-    const onKeyDown = (event) => {
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsOpen(false)
       }
@@ -47,7 +48,7 @@ function Profile() {
             role="dialog"
             aria-modal="true"
             aria-label="Site settings"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event: ReactMouseEvent<HTMLDivElement>) => event.stopPropagation()}
           >
             <div className="profile-modal__header">
               <h2 className="profile-modal__title">Site settings</h2>

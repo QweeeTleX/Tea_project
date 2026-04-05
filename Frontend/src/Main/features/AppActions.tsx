@@ -14,9 +14,9 @@ function CartButton() {
 				aria-hidden="true"
 			>
 				<path
-					d="M3 6h2l1.1 5.5h10.2l1.7-4.2H7"
+					d="M4.2 6h2l1.1 5.8h10.4l1.6-4.4H8.1"
 					stroke="currentColor"
-					strokeWidth="1.8"
+					strokeWidth="1.9"
 					strokeLinecap="round"
 					strokeLinejoin="round"
 				/>

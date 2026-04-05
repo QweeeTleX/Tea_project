@@ -2,21 +2,37 @@
 
 import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
+import type { ProductData } from "../types/product"
 
 const API_BASE = "http://localhost:5000/api"
 const FILES_BASE = "http://localhost:5000"
 
-function resolveImageSrc(src) {
+function resolveImageSrc(src: string) {
   if (!src) return ""
   if (/^https?:\/\//i.test(src)) return src
   if (src.startsWith("/")) return `${FILES_BASE}${src}`
   return `${FILES_BASE}/${src}`
 }
 
-function Subcategory() {
-  const { categoryId, subId } = useParams()
+type CatalogProduct = {
+  id: string
+  name: string
+  cost?: number
+  pic?: string[]
+  desc?: string
+}
 
-  const [products, setProducts] = useState([])
+type CatalogResponse = {
+  category?: string
+  subcategory?: string
+  products?: CatalogProduct[]
+  message?: string
+}
+
+function Subcategory() {
+  const { categoryId = "", subId = "" } = useParams()
+
+  const [products, setProducts] = useState<CatalogProduct[]>([])
   const [categoryTitle, setCategoryTitle] = useState("")
   const [subcategoryTitle, setSubcategoryTitle] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -31,7 +47,7 @@ function Subcategory() {
 
       try {
         const res = await fetch(`${API_BASE}/catalog/${categoryId}/${subId}`)
-        const data = await res.json().catch(() => ({}))
+        const data = await res.json().catch(() => ({})) as CatalogResponse
 
         if (!res.ok) {
           throw new Error(data.message || "Не удалось загрузить товары")
@@ -48,7 +64,7 @@ function Subcategory() {
         setProducts([])
         setCategoryTitle(categoryId)
         setSubcategoryTitle(subId)
-        setError(err.message || "Не удалось загрузить товары")
+        setError(err instanceof Error ? err.message : "Не удалось загрузить товары")
       } finally {
         if (!cancelled) {
           setIsLoading(false)
@@ -89,10 +105,13 @@ function Subcategory() {
 
           {!isLoading && !error
             ? products.map((product) => {
-                const cardProduct = {
-                  ...product,
+                const cardProduct: ProductData = {
+                  id: product.id,
+                  name: product.name,
+                  cost: product.cost,
                   pic: (product.pic || []).map(resolveImageSrc),
                   price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
+                  desc: product.desc || "Описание пока отсутствует",
                 }
 
                 return (

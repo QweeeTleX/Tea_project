@@ -1,13 +1,20 @@
 import { useState } from "react"
+import type { FormEvent } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "../auth/AuthContext.jsx"
+import { useAuth } from "../auth/AuthContext"
 import "../../Styles/Login.css"
+
+type LoginLocationState = {
+	from?: {
+		pathname?: string
+	}
+}
 
 
 function Login() {
 	const { login } = useAuth()
 	const navigate = useNavigate()
-	const location = useLocation()
+	const location = useLocation() as { state: LoginLocationState | null }
 
 	const [email, setEmail] = useState("")
 	const [password, setPassword] = useState("")
@@ -16,7 +23,7 @@ function Login() {
 
 	const from = location.state?.from?.pathname || "/"
 
-	const onSubmit = async (event) => {
+	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 		setError("")
 		setIsSubmitting(true)
@@ -25,7 +32,7 @@ function Login() {
 			await login(email, password)
 			navigate(from, { replace: true })
 		} catch (err) {
-			setError(err.message || "Login failed")
+			setError(err instanceof Error ? err.message : "Login failed")
 		} finally {
 			setIsSubmitting(false)
 		}

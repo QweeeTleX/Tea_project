@@ -5,7 +5,20 @@ import teaAccessoriesIcon from "../../Images/accessories_icon.svg"
 
 import { Link } from "react-router-dom"
 
-const categories = [
+type CategorySubtype = {
+  id: string
+  title: string
+}
+
+type CategoryItem = {
+  id: string
+  title: string
+  tone: string
+  image: string
+  subtypes: CategorySubtype[]
+}
+
+const categories: CategoryItem[] = [
   {
     id: "wares",
     title: "Посуда и товары",

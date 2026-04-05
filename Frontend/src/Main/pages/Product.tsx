@@ -1,24 +1,38 @@
 ﻿import { useEffect, useState } from "react"
 import { Link, useLocation, useParams } from "react-router-dom"
-import { useCart } from "../cart/CartContext.jsx"
+import { useCart } from "../cart/CartContext"
+import type { ProductData } from "../types/product"
 import "../../Styles/Product.css"
 
 const API_BASE = "http://localhost:5000/api"
 const FILES_BASE = "http://localhost:5000"
 
-function resolveImageSrc(src) {
+function resolveImageSrc(src: string) {
   if (!src) return ""
   if (/^https?:\/\//i.test(src)) return src
   if (src.startsWith("/")) return `${FILES_BASE}${src}`
   return `${FILES_BASE}/${src}`
 }
 
+type ProductLocationState = {
+  product?: ProductData
+}
+
+type ProductApiResponse = {
+  id: string
+  name: string
+  cost?: number
+  pic?: string[]
+  desc?: string
+  message?: string
+}
+
 function Product() {
-  const { categoryId, subId, productId } = useParams()
-  const { state } = useLocation()
+  const { categoryId = "", subId = "", productId = "" } = useParams()
+  const { state } = useLocation() as { state: ProductLocationState | null }
   const { addItem } = useCart()
 
-  const [product, setProduct] = useState(state?.product ?? null)
+  const [product, setProduct] = useState<ProductData | null>(state?.product ?? null)
   const [isLoading, setIsLoading] = useState(!state?.product)
   const [error, setError] = useState("")
 
@@ -31,7 +45,7 @@ function Product() {
 
       try {
         const res = await fetch(`${API_BASE}/product/${productId}`)
-        const data = await res.json().catch(() => ({}))
+        const data = await res.json().catch(() => ({})) as ProductApiResponse
 
         if (!res.ok) {
           throw new Error(data.message || "Не удалось загрузить товар")
@@ -47,7 +61,7 @@ function Product() {
         })
       } catch (err) {
         if (cancelled) return
-        setError(err.message || "Не удалось загрузить товар")
+        setError(err instanceof Error ? err.message : "Не удалось загрузить товар")
       } finally {
         if (!cancelled) {
           setIsLoading(false)

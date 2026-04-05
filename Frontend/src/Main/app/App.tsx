@@ -1,12 +1,12 @@
 ﻿import { Routes, Route, Outlet } from "react-router-dom"
-import Home from "../pages/Home.jsx"
-import Subcategory from "../pages/Subcategory.jsx"
-import Product from "../pages/Product.jsx"
-import Cart from "../pages/Cart.jsx"
-import AppActions from "../features/AppActions.jsx"
-import Admin from "../pages/Admin.jsx"
-import RequirePermission from "../auth/RequirePermission.jsx"
-import Login from "../pages/Login.jsx"
+import Home from "../pages/Home"
+import Subcategory from "../pages/Subcategory"
+import Product from "../pages/Product"
+import Cart from "../pages/Cart"
+import AppActions from "../features/AppActions"
+import Admin from "../pages/Admin"
+import RequirePermission from "../auth/RequirePermission"
+import Login from "../pages/Login"
 
 
 

@@ -1,13 +1,40 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import type { ReactNode } from "react"
 
-const CartContext = createContext(null)
+type CartItem = {
+	id: string
+	name: string
+	cost: number
+	pic: string[]
+	categoryId: string
+	subId: string
+	quantity: number
+}
+
+type CartProductInput = Omit<CartItem, "quantity">
+
+type CartContextValue = {
+	items: CartItem[]
+	addItem: (product: CartProductInput) => void
+	removeItem: (productId: string) => void
+	updateQuantity: (productId: string, nextQuantity: number) => void
+	clearCart: () => void
+	itemsCount: number
+	totalCost: number
+}
+
+type CartProviderProps = {
+	children: ReactNode
+}
+
+const CartContext = createContext<CartContextValue | null>(null)
 const STORAGE_KEY = "tea_cart_v1"
 
-export function CartProvider({ children }) {
-	const [items, setItems] = useState(() => {
+export function CartProvider({ children }: CartProviderProps) {
+	const [items, setItems] = useState<CartItem[]>(() => {
 		try {
 			const raw = localStorage.getItem(STORAGE_KEY)
-			return raw ? JSON.parse(raw) : []
+			return raw ? (JSON.parse(raw) as CartItem[]) : []
 		} catch {
 			return []
 		}
@@ -17,7 +44,7 @@ export function CartProvider({ children }) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
 	}, [items])
 
-	const addItem = (product) => {
+	const addItem = (product: CartProductInput) => {
 		setItems((prev) => {
 			const existing = prev.find((item) => item.id === product.id)
 
@@ -44,11 +71,11 @@ export function CartProvider({ children }) {
 		})
 	}
 
-	const removeItem = (productId) => {
+	const removeItem = (productId: string) => {
 		setItems((prev) => prev.filter((item) => item.id !== productId))
 	}
 
-	const updateQuantity = (productId, nextQuantity) => {
+	const updateQuantity = (productId: string, nextQuantity: number) => {
 		if (nextQuantity <= 0) {
 			removeItem(productId)
 			return
@@ -77,7 +104,7 @@ export function CartProvider({ children }) {
 		[items]
 	)
 
-	const value = {
+	const value: CartContextValue = {
 		items,
 		addItem,
 		removeItem,
