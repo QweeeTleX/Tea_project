@@ -248,6 +248,31 @@ app.get("/api/admin/ping", auth, requirePermission("admin:enter"), (req, res) =>
   res.json({ ok: true, message: "Admin access granted" })
 })
 
+app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res) => {
+  const products = [...cards]
+    .sort((a, b) => {
+      return (
+        a.category.localeCompare(b.category, "ru") ||
+        a.subcategory.localeCompare(b.subcategory, "ru") ||
+        a.name.localeCompare(b.name, "ru")
+      )
+    })
+    .map((card) => ({
+      id: card.id,
+      name: card.name,
+      cost: card.cost,
+      category: card.category,
+      subcategory: card.subcategory,
+      pic: card.pic,
+      status: "published",
+    }))
+  
+  res.json({
+    count: products.length,
+    products,
+  })  
+})
+
 app.get("/", (req, res) => res.send("Backend is working!"))
 
 app.listen(5000, () => {
