@@ -163,6 +163,14 @@
 	cursor: pointer;
 }
 
+.admin-hero__action:disabled,
+.admin-panel__action:disabled,
+.admin-row__btn:disabled {
+  opacity: 0.56;
+  cursor: not-allowed;
+}
+
+
 .admin-row__btn--ghost { /**/
 	background: transparent;
 	border: 1px solid rgba(43, 32, 21, 0.16);
@@ -234,6 +242,21 @@
 	display: grid;
 	gap: 12px;
 }
+
+.admin-state {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8f2ea;
+  border: 1px solid rgba(43, 32, 21, 0.1);
+  color: rgba(43, 32, 21, 0.78);
+}
+
+.admin-state--error {
+  background: #f7e6e3;
+  border-color: #e1b7b0;
+  color: #7a3027;
+}
+
 
 .admin-row {/**/
 	display: grid;

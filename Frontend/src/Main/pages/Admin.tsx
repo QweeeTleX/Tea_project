@@ -26,6 +26,24 @@ type AdminProductRow = {
   status: "published" | "draft"
 }
 
+type AdminApiProduct = {
+  id: string
+  name: string
+  cost: number | null
+  category: string
+  subcategory: string
+  pic: string[]
+  status: "published" | "draft"
+}
+
+type AdminProductsResponse = {
+  count: number
+  products: AdminApiProduct[]
+  message?: string
+}
+
+type RequestStatus = "idle" | "loading" | "success" | "error"
+
 const adminSections: AdminSection[] = [
   { id: "overview", label: "Обзор", note: "Статус админки и быстрые действия" },
   { id: "products", label: "Товары", note: "Будущий CRUD каталога" },
@@ -40,36 +58,15 @@ const adminMetrics: AdminMetric[] = [
   { label: "TypeScript", value: "Переведен", hint: "Основной frontend уже на TS" },
 ]
 
-const adminProducts: AdminProductRow[] = [
-  {
-    id: "p-01",
-    name: "Да Юй Линь 2025",
-    category: "Китайский чай",
-    subcategory: "Тайваньские улуны",
-    price: "950 ₽",
-    status: "published",
-  },
-  {
-    id: "p-02",
-    name: "Шуй Сянь",
-    category: "Китайский чай",
-    subcategory: "Северофуцзяньские улуны",
-    price: "300 ₽",
-    status: "published",
-  },
-  {
-    id: "p-03",
-    name: "Новый товар",
-    category: "Черновик",
-    subcategory: "Не выбрано",
-    price: "Цена позже",
-    status: "draft",
-  },
-]
-
 function Admin() {
   const [activeSection, setActiveSection] = useState<AdminSectionId>("overview")
   const [pingStatus, setPingStatus] = useState<"loading" | "ok" | "error">("loading")
+
+  /*api admin константы*/
+
+  const [products, setProducts] = useState<AdminApiProduct[]>([])
+  const [productStatus, setProductStatus] = useState<RequestStatus>("idle")
+  const [productsError, setProductsError] = useState("")
 
   useEffect(() => {
     let cancelled = false
@@ -101,8 +98,59 @@ function Admin() {
     }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadProduct() {
+      setProductStatus("loading")
+      setProductsError("")
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/products`, {
+          credentials: "include",
+        })
+
+        const data = (await res.json().catch(() => ({}))) as Partial<AdminProductsResponse>
+
+        if (!res.ok) {
+          const message =
+            typeof data.message === "string" ? data.message : "Не удалось загрузить товары"
+          throw new Error(message)  
+        }
+
+        if (cancelled) return
+
+        setProducts(Array.isArray(data.products) ? data.products : [])
+        setProductStatus("success")
+      } catch (error) {
+        if (cancelled) return
+
+        setProducts([])
+        setProductStatus("error")
+        setProductsError(
+          error instanceof Error ? error.message : "Не удалось загрузить товары"
+        )
+      }
+    }
+
+    void loadProduct()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const activeSectionMeta =
     adminSections.find((section) => section.id === activeSection) || adminSections[0]
+
+    const productRows: AdminProductRow[] = products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      subcategory: product.subcategory,
+      price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
+      status: product.status,
+    }))
 
   return (
     <div className="admin-page">
@@ -214,7 +262,7 @@ function Admin() {
                 <div>
                   <h3 className="admin-panel__title">Товары</h3>
                   <p className="admin-panel__subtitle">
-                    Пока это UI-слой. Следующий шаг после него — реальные API для CRUD.
+                    Уже збс воркабл
                   </p>
                 </div>
 
@@ -224,33 +272,42 @@ function Admin() {
               </div>
 
               <div className="admin-table">
-                {adminProducts.map((product) => (
-                  <div key={product.id} className="admin-row">
-                    <div className="admin-row__main">
-                      <div className="admin-row__name">{product.name}</div>
-                      <div className="admin-row__meta">
-                        {product.category} / {product.subcategory}
+                {productStatus === "loading" ? (
+                  <div className="admin-state">Загружаем реальные товары из backend...</div>
+                ) : null}
+
+                {productStatus === "error" ? (
+                  <div className="admin-state admin-state--error">{productsError}</div>
+                ) : null}
+
+                {productStatus === "success" && productRows.length === 0 ? (
+                  <div className="admin-state">Список товаров пуст.</div>
+                ) : null}
+
+                {productStatus === "success"
+                  ? productRows.map((product) => (
+                    <div key={product.id} className="admin-row">
+                      <div className="admin-row__main">
+                        <div className="admin-row__name">{product.name}</div>
+                        <div className="admin-row__meta">
+                          {product.category} / {product.subcategory}
+                        </div>
+                      </div>
+
+                      <div className="admin-row__price">{product.price}</div>
+
+                      <div className={`admin-badge admin-badge--${product.status}`}>
+                        {product.status === "published" ? "Опубликован" : "Черновик"}
+                      </div>
+
+                      <div className="admin-row__actions">
+                        <button type="button" className="admin-row__btn" disabled>
+                          Редактирование позже
+                        </button>
                       </div>
                     </div>
-
-                    <div className="admin-row__price">{product.price}</div>
-
-                    <div
-                      className={`admin-badge admin-badge--${product.status}`}
-                    >
-                      {product.status === "published" ? "Опубликован" : "Черновик"}
-                    </div>
-
-                    <div className="admin-row__actions">
-                      <button type="button" className="admin-row__btn">
-                        Редактировать
-                      </button>
-                      <button type="button" className="admin-row__btn admin-row__btn--ghost">
-                        Архив
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                : null}
               </div>
             </section>
           ) : null}

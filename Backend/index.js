@@ -250,6 +250,15 @@ app.get("/api/admin/ping", auth, requirePermission("admin:enter"), (req, res) =>
 
 app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res) => {
   const products = [...cards]
+    .map((card) => ({
+      id: card.id,
+      name: card.name || "Без названия",
+      cost: card.cost,
+      category: card.category || "Без категории",
+      subcategory: card.subcategory || "Без подкатегории",
+      pic: Array.isArray(card.pic) ? card.pic : [],
+      status: "published",
+    }))
     .sort((a, b) => {
       return (
         a.category.localeCompare(b.category, "ru") ||
@@ -257,20 +266,11 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
         a.name.localeCompare(b.name, "ru")
       )
     })
-    .map((card) => ({
-      id: card.id,
-      name: card.name,
-      cost: card.cost,
-      category: card.category,
-      subcategory: card.subcategory,
-      pic: card.pic,
-      status: "published",
-    }))
-  
+
   res.json({
     count: products.length,
     products,
-  })  
+  })
 })
 
 app.get("/", (req, res) => res.send("Backend is working!"))
