@@ -99,6 +99,7 @@ function Admin() {
   /*константы крада*/
   
   const [editingProductId, setEditingProductId] = useState<string | null>(null)
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false)
   const [editName, setEditName] = useState("")
   const [editCost, setEditCost] = useState("")
   const [editCategory, setEditCategory] = useState("")
@@ -268,7 +269,18 @@ function Admin() {
         return priceB - priceA
       })
 
+      function startCreateProduct() {
+        setIsCreatingProduct(true)
+        setEditingProductId(null)
+        setEditName("")
+        setEditCost("")
+        setEditCategory(selectedCategory === "all" ? "" : selectedCategory)
+        setEditSubcategory(selectedSubcategory === "all" ? "" : selectedSubcategory)
+        setProductActionError("")
+      }
+
       function startEditProduct(product: AdminProductRow) {
+        setIsCreatingProduct(false)
         setEditingProductId(product.id)
         setEditName(product.name)
         setEditCost(product.cost != null ? String(product.cost) : "")
@@ -278,6 +290,7 @@ function Admin() {
       }
 
       function cancelEditProduct() {
+        setIsCreatingProduct(false)
         setEditingProductId(null)
         setEditName("")
         setEditCost("")
@@ -289,14 +302,21 @@ function Admin() {
       async function saveProduct(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (!editingProductId) return
+        if (!editingProductId && !isCreatingProduct) return
 
         setIsSavingProduct(true)
         setProductActionError("")
 
         try {
-          const res = await fetch(`${API_BASE}/admin/products/${editingProductId}`, {
-            method: "PUT",
+          const requestUrl = isCreatingProduct
+            ? `${API_BASE}/admin/products`
+            : `${API_BASE}/admin/products/${editingProductId}`
+
+          const requestMethod = isCreatingProduct ? "POST" : "PUT"
+          
+      
+          const res = await fetch(requestUrl, {
+            method: requestMethod,
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
@@ -321,10 +341,13 @@ function Admin() {
           const updatedProduct = data.product
 
           setProducts((currentProducts) =>
-            currentProducts.map((product) =>
-              product.id === updatedProduct.id ? updatedProduct: product
-            )
+            isCreatingProduct
+              ? [updatedProduct, ...currentProducts]
+              : currentProducts.map((product) =>
+                  product.id === updatedProduct.id ? updatedProduct : product
+                )
           )
+
 
           cancelEditProduct()
         } catch (error) {
@@ -488,7 +511,11 @@ function Admin() {
                   </p>
                 </div>
 
-                <button type="button" className="admin-panel__action">
+                <button
+                  type="button"
+                  className="admin-panel__action"
+                  onClick={startCreateProduct}
+                >
                   Добавить товар
                 </button>
               </div>
@@ -654,14 +681,16 @@ function Admin() {
                 Найдено товаров: {filteredRows.length} из {productRows.length}
               </div>
 
-              {editingProductId ? (
+              {editingProductId || isCreatingProduct ? (
                 <form
                   className="admin-edit-form"
                   onSubmit={(event) => void saveProduct(event)}
                 >
                   <div className="admin-edit-form__header">
                     <div>
-                      <h4 className="admin-edit-form__title">Редактирование товара</h4>
+                      <h4 className="admin-edit-form__title">
+                        {isCreatingProduct ? "Добавление товара" : "Редактирование товара"}
+                      </h4>
                       <p className="admin-edit-form__text">
                         Изменения сохраняются отдельно, исходный cards.jsonl не трогаем.
                       </p>
@@ -721,7 +750,11 @@ function Admin() {
                       className="admin-panel__action"
                       disabled={isSavingProduct}
                     >
-                      {isSavingProduct ? "Сохраняем..." : "Сохранить"}
+                      {isSavingProduct
+                        ? "Сохраняем..."
+                        : isCreatingProduct
+                          ? "Создать"
+                          : "Сохранить"}
                     </button>
 
                     <button

@@ -90,6 +90,7 @@ function readAdminState() {
     return {
       deletedIds: [],
       overrides: {},
+      createdProducts: [],
     }
   }
 
@@ -97,8 +98,9 @@ function readAdminState() {
   const data = JSON.parse(raw)
 
   return {
-     deletedIds: Array.isArray(data.deletedIds) ? data.deletedIds : [],
-     overrides: data.overrides && typeof data.overrides === "object" ? data.overrides : {},
+    deletedIds: Array.isArray(data.deletedIds) ? data.deletedIds : [],
+    overrides: data.overrides && typeof data.overrides === "object" ? data.overrides : {},
+    createdProducts: Array.isArray(data.createdProducts) ? data.createdProducts : [],
   }
 }
 
@@ -116,10 +118,11 @@ function applyAdminChanges(card) {
 }
 
 function getCatalogCards() {
-  return cards
+  return [...cards, ...adminState.createdProducts]
     .filter((card) => !adminState.deletedIds.includes(card.id))
     .map(applyAdminChanges)
 }
+
 
 function hasText(value) {
   return typeof value === "string" && value.trim().length > 0
@@ -358,6 +361,56 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
     invalidProducts,
   })
 })
+
+app.post("/api/admin/products", auth, requirePermission("products:write"), (req, res) => {
+  const { name, cost, category, subcategory, desc } = req.body
+
+  if (!hasText(name)) {
+    return res.status(400).json({ message: "Название товара обязательно" })
+  }
+
+  if (!hasText(category)) {
+    return res.status(400).json({ message: "Категория обязательна" })
+  }
+
+  if (!hasText(subcategory)) {
+    return res.status(400).json({ message: "Подкатегория обязательна" })
+  }
+
+  const nextCost = cost === "" || cost == null ? null : Number(cost)
+
+  if (nextCost !== null && (!Number.isFinite(nextCost) || nextCost < 0)) {
+    return res.status(400).json({ message: "Цена должна быть положительным числом" })
+  }
+
+  const product = {
+    id: `admin-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: name.trim(),
+    pic: [],
+    cost: nextCost,
+    desc: typeof desc === "string" ? desc.trim() : "",
+    category: category.trim(),
+    subcategory: subcategory.trim(),
+    source_file: "",
+  }
+
+  adminState.createdProducts.push(product)
+  saveAdminState()
+
+  res.status(201).json({
+    product: {
+      id: product.id,
+      name: product.name,
+      cost: product.cost,
+      category: product.category,
+      subcategory: product.subcategory,
+      pic: product.pic,
+      desc: product.desc,
+      status: "published",
+    },
+  })
+})
+
 
 app.put("/api/admin/products/:productId", auth, requirePermission("products:write"), (req, res) => {
   const { productId } = req.params
