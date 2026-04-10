@@ -257,6 +257,50 @@
   color: #7a3027;
 }
 
+.admin-state--warning {
+	background: #f5e9dc;
+	border-color: #e3c7a6;
+	color: #6b4b31;
+}
+
+
+.admin-issues {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(43, 32, 21, 0.08);
+}
+
+.admin-issues__title {
+  margin: 0;
+  color: #2b2015;
+  font-size: 18px;
+}
+
+.admin-issues__list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-issue-row {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #f8f2ea;
+  border: 1px solid rgba(43, 32, 21, 0.1);
+  display: grid;
+  gap: 4px;
+}
+
+.admin-issue-row__file {
+  font-weight: 600;
+  color: #2b2015;
+}
+
+.admin-issue-row__meta {
+  font-size: 14px;
+  color: rgba(43, 32, 21, 0.72);
+}
+
 
 .admin-row {/**/
 	display: grid;
@@ -309,6 +353,29 @@
 	justify-content: flex-end;
 }
 
+.admin-filters {
+	display: grid;
+	grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+.admin-filters__input,
+.admin-filters__select {
+	min-height: 44px;
+	padding: 0 14px;
+	border-radius: 12px;
+	border: 1px solid rgba(43, 32, 21, 0.14);
+	background: #fffdf9;
+	color: #2b2015;
+	font: inherit;
+}
+
+.admin-filters__meta {
+	color: rgba(43, 32, 21, 0.68);
+	font-size: 14px;
+}
+
+
 @media (max-width: 980px) {
   .admin-shell {
     grid-template-columns: 1fr;
@@ -338,6 +405,11 @@
   .admin-hero__right {
     justify-items: start;
   }
+
+	.admin-filters {
+		grid-template-columns: 1fr;
+	}
+
 }
 
 @media (max-width: 640px) {

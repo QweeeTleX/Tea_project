@@ -9,19 +9,30 @@ const path = require("path")
 const app = express()
 const imagesPath = path.join(__dirname, "..", "images")
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+]
+
 app.use("/images", express.static(imagesPath))
 app.use(express.json())
 app.use(cookieParser())
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error("Not allowed by CORS"))
+    },
     credentials: true,
   })
 )
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me"
 
-// Временно in-memory. Потом вынеси в БД.
 const users = [
   {
     id: 1,
@@ -57,19 +68,39 @@ function readJsonl(filePath) {
 
       return {
         id: item.source_file?.replace(/\.md$/i, "") || `card-${index + 1}`,
-        name: item.name,
-        pic: item.pic || [],
-        cost: item.cost ?? null,
-        desc: item.desc || "",
-        category: item.category,
-        subcategory: item.subcategory,
-        source_file: item.source_file,
+        name: typeof item.name === "string" ? item.name : "",
+        pic: Array.isArray(item.pic) ? item.pic : [],
+        cost: typeof item.cost === "number" ? item.cost : null,
+        desc: typeof item.desc === "string" ? item.desc : "",
+        category: typeof item.category === "string" ? item.category : "",
+        subcategory: typeof item.subcategory === "string" ? item.subcategory : "",
+        source_file: typeof item.source_file === "string" ? item.source_file : "",
+        importError: typeof item.error === "string" ? item.error : "",
       }
     })
 }
 
 const cardsPath = path.join(__dirname, "base", "cards.jsonl")
 const cards = readJsonl(cardsPath)
+
+function hasText(value) {
+  return typeof value === "string" && value.trim().length > 0
+}
+
+function isValidCard(card) {
+  return hasText(card.name) && hasText(card.category) && hasText(card.subcategory)
+}
+
+function getCardIssues(card) {
+  const issues = []
+
+  if (!hasText(card.name)) issues.push("missing_name")
+  if (!hasText(card.category)) issues.push("missing_category")
+  if (!hasText(card.subcategory)) issues.push("missing_subcategory")
+  if (hasText(card.importError)) issues.push(card.importError)
+
+  return issues  
+}
 
 const catalogMap = {
   tea: {
@@ -178,7 +209,7 @@ app.post("/api/auth/login", async (req, res) => {
   res.cookie("access_token", token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: false, // в проде true (HTTPS)
+    secure: false,
     maxAge: 60 * 60 * 1000,
   })
 
@@ -249,7 +280,8 @@ app.get("/api/admin/ping", auth, requirePermission("admin:enter"), (req, res) =>
 })
 
 app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res) => {
-  const products = [...cards]
+  const validProducts = cards
+    .filter(isValidCard)
     .map((card) => ({
       id: card.id,
       name: card.name || "Без названия",
@@ -267,9 +299,23 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
       )
     })
 
+    const invalidProducts = cards
+      .filter((card) => !isValidCard(card))
+      .map((card) => ({
+        id: card.id,
+        source_file: card.source_file || "unknown_source",
+        name: card.name,
+        category: card.category,
+        subcategory: card.subcategory,
+        issues: getCardIssues(card),
+      }))
+      .sort((a, b) => a.source_file.localeCompare(b.source_file, "en"))
+
   res.json({
-    count: products.length,
-    products,
+    count: validProducts.length,
+    products: validProducts,
+    invalidCount: invalidProducts.length,
+    invalidProducts,
   })
 })
 

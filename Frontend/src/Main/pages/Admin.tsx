@@ -36,13 +36,26 @@ type AdminApiProduct = {
   status: "published" | "draft"
 }
 
+type AdminInvalidProduct = {
+  id: string
+  source_file: string
+  name: string
+  category: string
+  subcategory: string
+  issues: string[]
+}
+
 type AdminProductsResponse = {
   count: number
   products: AdminApiProduct[]
+  invalidCount: number
+  invalidProducts: AdminInvalidProduct[]
   message?: string
 }
 
 type RequestStatus = "idle" | "loading" | "success" | "error"
+
+type ProductSort = "name-asc" | "price-asc" | "price-desc"
 
 const adminSections: AdminSection[] = [
   { id: "overview", label: "Обзор", note: "Статус админки и быстрые действия" },
@@ -67,6 +80,14 @@ function Admin() {
   const [products, setProducts] = useState<AdminApiProduct[]>([])
   const [productStatus, setProductStatus] = useState<RequestStatus>("idle")
   const [productsError, setProductsError] = useState("")
+  const [invalidProducts, setInvalidProducts] = useState<AdminInvalidProduct[]>([])
+
+  /*sorts admin константы*/
+  
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedSubcategory, setSelectedSubcategory] = useState("all")
+  const [productSort, setProductSort] = useState<ProductSort>("name-asc")
 
   useEffect(() => {
     let cancelled = false
@@ -121,11 +142,13 @@ function Admin() {
         if (cancelled) return
 
         setProducts(Array.isArray(data.products) ? data.products : [])
+        setInvalidProducts(Array.isArray(data.invalidProducts) ? data.invalidProducts : [])
         setProductStatus("success")
       } catch (error) {
         if (cancelled) return
 
         setProducts([])
+        setInvalidProducts([])
         setProductStatus("error")
         setProductsError(
           error instanceof Error ? error.message : "Не удалось загрузить товары"
@@ -140,6 +163,10 @@ function Admin() {
     }
   }, [])
 
+  useEffect(() => {
+    setSelectedSubcategory("all")
+  }, [selectedCategory])
+
   const activeSectionMeta =
     adminSections.find((section) => section.id === activeSection) || adminSections[0]
 
@@ -151,6 +178,60 @@ function Admin() {
       price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
       status: product.status,
     }))
+
+    function formatIssue(issue: string) {
+      if (issue === "missing_name") return "нет имени"
+      if (issue === "missing_category") return "нет категории"
+      if (issue === "missing_subcategory") return "нет подкатегории"
+      if (issue === "json_decode_failed") return "ошибка разбора json"
+      return issue
+    }
+
+    const availableCategories = Array.from(
+      new Set(products.map((product) => product.category).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "ru"))
+
+    const availaSubcategories = Array.from(
+      new Set(
+        products
+          .filter((product) =>
+            selectedCategory === "all" ? true : product.category === selectedCategory
+          )
+          .map((product) => product.subcategory)
+          .filter(Boolean)
+      )
+    ).sort((a, b) => a.localeCompare(b, "ru"))
+
+    const filteredRows = productRows
+      .filter((product) => {
+        const matchesSearch = product.name
+          .toLowerCase()
+          .includes(searchQuery.trim().toLowerCase())
+        
+        const matchesCategory =
+          selectedCategory === "all" ? true: product.category === selectedCategory
+          
+        const matchesSubcategory =
+          selectedSubcategory === "all"
+            ? true
+            : product.subcategory === selectedSubcategory
+           
+        return matchesSearch && matchesCategory && matchesSubcategory    
+      })
+      .sort((a, b) => {
+        if (productSort === "name-asc") {
+          return a.name.localeCompare(b.name, "ru")
+        }
+
+        const priceA = a.price === "Цена позже" ? Number.POSITIVE_INFINITY : Number(a.price.replace(/[^\d]/g, ""))
+        const priceB = b.price === "Цена позже" ? Number.POSITIVE_INFINITY : Number(b.price.replace(/[^\d]/g, ""))
+
+        if (productSort === "price-asc") {
+          return priceA - priceB
+        }
+
+        return priceB - priceA
+      })
 
   return (
     <div className="admin-page">
@@ -271,6 +352,56 @@ function Admin() {
                 </button>
               </div>
 
+              <div className="admin-filters">
+                <input
+                  className="admin-filters__input"
+                  type="text"
+                  placeholder="Поиск по названию"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+
+                <select
+                  className="admin-filters__select"
+                  value={selectedCategory}
+                  onChange={(event) => setSelectedCategory(event.target.value)}
+                >
+                  <option value="all">Все категории</option>
+                  {availableCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  className="admin-filters__select"
+                  value={selectedSubcategory}
+                  onChange={(event) => setSelectedSubcategory(event.target.value)}
+                >
+                  <option value="all">Все подкатегории</option>
+                  {availaSubcategories.map((subcategory) => (
+                    <option key={subcategory} value={subcategory}>
+                      {subcategory}
+                    </option>
+                  ))}  
+                </select>
+
+                <select
+                  className="admin-filters__select"
+                  value={productSort}
+                  onChange={(event) => setProductSort(event.target.value as ProductSort)}
+                >
+                  <option value="name-asc">По имени А-Я</option>
+                  <option value="price-asc">Сначала дешевле</option>
+                  <option value="price-desc">Сначала дороже</option>  
+                </select>
+              </div>
+
+              <div className="admin-filters__meta">
+                Найдено товаров: {filteredRows.length} из {productRows.length}
+              </div>
+
               <div className="admin-table">
                 {productStatus === "loading" ? (
                   <div className="admin-state">Загружаем реальные товары из backend...</div>
@@ -280,12 +411,13 @@ function Admin() {
                   <div className="admin-state admin-state--error">{productsError}</div>
                 ) : null}
 
-                {productStatus === "success" && productRows.length === 0 ? (
-                  <div className="admin-state">Список товаров пуст.</div>
+                {productStatus === "success" && filteredRows.length === 0 ? (
+                  <div className="admin-state admin-state--warning">
+                    Найдено проблемных записей: {invalidProducts.length}. Они не попадают на витрину и показаны отдельно ниже.</div>
                 ) : null}
 
                 {productStatus === "success"
-                  ? productRows.map((product) => (
+                  ? filteredRows.map((product) => (
                     <div key={product.id} className="admin-row">
                       <div className="admin-row__main">
                         <div className="admin-row__name">{product.name}</div>
@@ -308,6 +440,24 @@ function Admin() {
                     </div>
                   ))
                 : null}
+
+                {productStatus === "success" && invalidProducts.length > 0 ? (
+                  <div className="admin-issues">
+                    <h4 className="admin-issues__title">Проблемные записи импорта</h4>
+
+                    <div className="admin-issues__list">
+                      {invalidProducts.map((item) => (
+                        <div key={item.id} className="admin-issue-row">
+                          <div className="admin-issue-row__file">{item.source_file}</div>
+                          <div className="admin-issue-row__meta">
+                            {(item.name || "Без имени")} /{" "}
+                            {item.issues.map(formatIssue).join(" / ")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </section>
           ) : null}
