@@ -89,6 +89,14 @@ function Admin() {
   const [selectedSubcategory, setSelectedSubcategory] = useState("all")
   const [productSort, setProductSort] = useState<ProductSort>("name-asc")
 
+  /* константы списка*/
+  
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+  const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(false)
+  const [isSortOpen, setIsSortOpen] = useState(false)
+
+
+
   useEffect(() => {
     let cancelled = false
 
@@ -201,6 +209,19 @@ function Admin() {
           .filter(Boolean)
       )
     ).sort((a, b) => a.localeCompare(b, "ru"))
+
+    const selectedCategoryLabel =
+      selectedCategory === "all" ? "Все категории" : selectedCategory
+
+    const selectedSubcategoryLabel =
+      selectedSubcategory === "all" ? "Все подкатегории" : selectedSubcategory
+      
+    const selectedSortLabel =
+      productSort === "name-asc"
+        ? "По имени А-Я"
+        : productSort === "price-asc"
+          ? "Сначала дешевле"
+          : "Сначала дороже"  
 
     const filteredRows = productRows
       .filter((product) => {
@@ -361,41 +382,152 @@ function Admin() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
 
-                <select
-                  className="admin-filters__select"
-                  value={selectedCategory}
-                  onChange={(event) => setSelectedCategory(event.target.value)}
-                >
-                  <option value="all">Все категории</option>
-                  {availableCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                <div className={`admin-dropdown ${isCategoryOpen ? "admin-dropdown--open" : ""}`}>
+                  <button
+                    type="button"
+                    className="admin-dropdown__button"
+                    onClick={() => {
+                      setIsCategoryOpen((current) => !current)
+                      setIsSubcategoryOpen(false)
+                      setIsSortOpen(false)
+                    }}
+                  >
+                    <span>{selectedCategoryLabel}</span>
+                    <span>v</span>
+                  </button>
 
-                <select
-                  className="admin-filters__select"
-                  value={selectedSubcategory}
-                  onChange={(event) => setSelectedSubcategory(event.target.value)}
-                >
-                  <option value="all">Все подкатегории</option>
-                  {availaSubcategories.map((subcategory) => (
-                    <option key={subcategory} value={subcategory}>
-                      {subcategory}
-                    </option>
-                  ))}  
-                </select>
+                  <ul className="admin-dropdown__list">
+                    <li>
+                      <button
+                        type="button"
+                        className="admin-dropdown__option"
+                        onClick={() => {
+                          setSelectedCategory("all")
+                          setIsCategoryOpen(false)
+                        }}
+                      >
+                        Все категории
+                      </button>
+                    </li>
 
-                <select
-                  className="admin-filters__select"
-                  value={productSort}
-                  onChange={(event) => setProductSort(event.target.value as ProductSort)}
-                >
-                  <option value="name-asc">По имени А-Я</option>
-                  <option value="price-asc">Сначала дешевле</option>
-                  <option value="price-desc">Сначала дороже</option>  
-                </select>
+                    {availableCategories.map((category) => (
+                      <li key={category}>
+                        <button
+                          type="button"
+                          className="admin-dropdown__option"
+                          onClick={() => {
+                            setSelectedCategory(category)
+                            setIsCategoryOpen(false)
+                          }}
+                        >
+                          {category}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className={`admin-dropdown ${isSubcategoryOpen ? "admin-dropdown--open" : ""}`}>
+                  <button
+                    type="button"
+                    className="admin-dropdown__button"
+                    onClick={() => {
+                      setIsSubcategoryOpen((current) => !current)
+                      setIsCategoryOpen(false)
+                      setIsSortOpen(false)
+                    }}
+                  >
+                    <span>{selectedSubcategoryLabel}</span>
+                    <span>v</span>
+                  </button>
+
+                  <ul className="admin-dropdown__list">
+                    <li>
+                      <button
+                        type="button"
+                        className="admin-dropdown__option"
+                        onClick={() => {
+                          setSelectedSubcategory("all")
+                          setIsSubcategoryOpen(false)
+                        }}
+                      >
+                        Все подкатегории
+                      </button>
+                    </li>
+
+                    {availaSubcategories.map((subcategory) => (
+                      <li key={subcategory}>
+                        <button
+                          type="button"
+                          className="admin-dropdown__option"
+                          onClick={() => {
+                            setSelectedSubcategory(subcategory)
+                            setIsSubcategoryOpen(false)
+                          }}
+                        >
+                          {subcategory}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className={`admin-dropdown ${isSortOpen ? "admin-dropdown--open" : ""}`}>
+                  <button
+                    type="button"
+                    className="admin-dropdown__button"
+                    onClick={() => {
+                      setIsSortOpen((current) => !current)
+                      setIsCategoryOpen(false)
+                      setIsSubcategoryOpen(false)
+                    }}
+                  >
+                    <span>{selectedSortLabel}</span>
+                    <span>v</span>
+                  </button>
+
+                  <ul className="admin-dropdown__list">
+                    <li>
+                      <button
+                        type="button"
+                        className="admin-dropdown__option"
+                        onClick={() => {
+                          setProductSort("name-asc")
+                          setIsSortOpen(false)
+                        }}
+                      >
+                        По имени А-Я
+                      </button>
+                    </li>
+
+                    <li>
+                      <button
+                        type="button"
+                        className="admin-dropdown__option"
+                        onClick={() => {
+                          setProductSort("price-asc")
+                          setIsSortOpen(false)
+                        }}
+                      >
+                        Сначала дешевле
+                      </button>
+                    </li>
+
+                    <li>
+                      <button
+                        type="button"
+                        className="admin-dropdown__option"
+                        onClick={() => {
+                          setProductSort("price-desc")
+                          setIsSortOpen(false)
+                        }}
+                      >
+                        Сначала дороже
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+
               </div>
 
               <div className="admin-filters__meta">
