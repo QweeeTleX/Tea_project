@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import "../../Styles/Admin.css"
 
 const API_BASE = "http://localhost:5000/api"
@@ -20,6 +20,7 @@ type AdminMetric = {
 type AdminProductRow = {
   id: string
   name: string
+  cost: number | null
   category: string
   subcategory: string
   price: string
@@ -94,6 +95,18 @@ function Admin() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isSubcategoryOpen, setIsSubcategoryOpen] = useState(false)
   const [isSortOpen, setIsSortOpen] = useState(false)
+
+  /*константы крада*/
+  
+  const [editingProductId, setEditingProductId] = useState<string | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editCost, setEditCost] = useState("")
+  const [editCategory, setEditCategory] = useState("")
+  const [editSubcategory, setEditSubcategory] = useState("")
+  const [isSavingProduct, setIsSavingProduct] = useState(false)
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
+  const [productActionError, setProductActionError] = useState("")
+
 
 
 
@@ -181,6 +194,7 @@ function Admin() {
     const productRows: AdminProductRow[] = products.map((product) => ({
       id: product.id,
       name: product.name,
+      cost: product.cost,
       category: product.category,
       subcategory: product.subcategory,
       price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
@@ -253,6 +267,112 @@ function Admin() {
 
         return priceB - priceA
       })
+
+      function startEditProduct(product: AdminProductRow) {
+        setEditingProductId(product.id)
+        setEditName(product.name)
+        setEditCost(product.cost != null ? String(product.cost) : "")
+        setEditCategory(product.category)
+        setEditSubcategory(product.subcategory)
+        setProductActionError("")
+      }
+
+      function cancelEditProduct() {
+        setEditingProductId(null)
+        setEditName("")
+        setEditCost("")
+        setEditCategory("")
+        setEditSubcategory("")
+        setProductActionError("")
+      }
+
+      async function saveProduct(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
+
+        if (!editingProductId) return
+
+        setIsSavingProduct(true)
+        setProductActionError("")
+
+        try {
+          const res = await fetch(`${API_BASE}/admin/products/${editingProductId}`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: editName,
+              cost: editCost,
+              category: editCategory,
+              subcategory: editSubcategory
+            }),
+          })
+
+          const data = (await res.json().catch(() => ({}))) as {
+            product?: AdminApiProduct
+            message?: string
+          }
+
+          if (!res.ok || !data.product) {
+            throw new Error(data.message || "Не удалось сохранить товар")
+          }
+
+          const updatedProduct = data.product
+
+          setProducts((currentProducts) =>
+            currentProducts.map((product) =>
+              product.id === updatedProduct.id ? updatedProduct: product
+            )
+          )
+
+          cancelEditProduct()
+        } catch (error) {
+          setProductActionError(
+            error instanceof Error ? error.message : "Не удалось сохранить товар"
+          )
+        } finally {
+          setIsSavingProduct(false)
+        }
+      }
+
+      async function deleteProduct(product: AdminProductRow) {
+        const confirmed = window.confirm(`Удалить товар "${product.name}"?`)
+
+        if (!confirmed) return
+
+        setDeletingProductId(product.id)
+        setProductActionError("")
+
+        try {
+          const res = await fetch(`${API_BASE}/admin/products/${product.id}`, {
+            method: "DELETE",
+            credentials: "include",
+          })
+
+          const data = (await res.json().catch(() => ({}))) as {
+            message?: string
+          }
+
+          if (!res.ok) {
+            throw new Error(data.message || "Не удалось удалить товар")
+          }
+
+          setProducts((currentProducts) =>
+            currentProducts.filter((item) => item.id !== product.id)
+          )
+
+          if (editingProductId === product.id) {
+            cancelEditProduct()
+          }
+        } catch (error) {
+          setProductActionError(
+            error instanceof Error ? error.message : "Не удалось удалить товар"
+          )
+        } finally {
+          setDeletingProductId(null)
+        }
+      }
 
   return (
     <div className="admin-page">
@@ -534,6 +654,93 @@ function Admin() {
                 Найдено товаров: {filteredRows.length} из {productRows.length}
               </div>
 
+              {editingProductId ? (
+                <form
+                  className="admin-edit-form"
+                  onSubmit={(event) => void saveProduct(event)}
+                >
+                  <div className="admin-edit-form__header">
+                    <div>
+                      <h4 className="admin-edit-form__title">Редактирование товара</h4>
+                      <p className="admin-edit-form__text">
+                        Изменения сохраняются отдельно, исходный cards.jsonl не трогаем.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="admin-row__btn admin-row__btn--ghost"
+                      onClick={cancelEditProduct}
+                      disabled={isSavingProduct}
+                    >
+                      Закрыть
+                    </button>
+                  </div>
+
+                  <label className="admin-edit-form__field">
+                    <span>Название</span>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(event) => setEditName(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="admin-edit-form__field">
+                    <span>Цена</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editCost}
+                      onChange={(event) => setEditCost(event.target.value)}
+                      placeholder="Цена позже"
+                    />
+                  </label>
+
+                  <label className="admin-edit-form__field">
+                    <span>Категория</span>
+                    <input
+                      type="text"
+                      value={editCategory}
+                      onChange={(event) => setEditCategory(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="admin-edit-form__field">
+                    <span>Подкатегория</span>
+                    <input
+                      type="text"
+                      value={editSubcategory}
+                      onChange={(event) => setEditSubcategory(event.target.value)}
+                    />
+                  </label>
+
+                  <div className="admin-edit-form__actions">
+                    <button
+                      type="submit"
+                      className="admin-panel__action"
+                      disabled={isSavingProduct}
+                    >
+                      {isSavingProduct ? "Сохраняем..." : "Сохранить"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-row__btn admin-row__btn--ghost"
+                      onClick={cancelEditProduct}
+                      disabled={isSavingProduct}
+                    >
+                      Отмена
+                    </button>
+                  </div>
+                </form>
+              ) : null}
+
+              {productActionError ? (
+                <div className="admin-state admin-state--error">{productActionError}</div>
+              ) : null}
+
+
               <div className="admin-table">
                 {productStatus === "loading" ? (
                   <div className="admin-state">Загружаем реальные товары из backend...</div>
@@ -565,9 +772,22 @@ function Admin() {
                       </div>
 
                       <div className="admin-row__actions">
-                        <button type="button" className="admin-row__btn" disabled>
-                          Редактирование позже
+                        <button
+                          type="button"
+                          className="admin-row__btn"
+                          onClick={() => startEditProduct(product)}
+                        >
+                          Редактировать  
                         </button>
+
+                        <button
+                          type="button"
+                          className="admin-row__btn admin-row__btn--danger"
+                          disabled={deletingProductId === product.id}
+                          onClick={() => void deleteProduct(product)}
+                        >
+                          {deletingProductId === product.id ? "Удаляем" : "Удалить"}  
+                        </button>  
                       </div>
                     </div>
                   ))

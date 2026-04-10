@@ -376,6 +376,72 @@
 	font-size: 14px;
 }
 
+.admin-edit-form {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 14px;
+	padding: 16px;
+	border-radius: 18px;
+	border: 1px solid rgba(43, 32, 21, 0.14);
+	background: #f8f2ea;
+}
+
+.admin-edit-form__header {
+	grid-column: 1 / -1;
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	align-items: flex-start;
+}
+
+.admin-edit-form__title {
+	margin: 0;
+	color: #2b2015;
+	font-size: 18px;
+}
+
+.admin-edit-form__text {
+	margin: 6px 0 0;
+	color: rgba(43, 32, 21, 0.68);
+	line-height: 1.45;
+}
+
+.admin-edit-form__field {
+	display: grid;
+	gap: 8px;
+	color: rgba(43, 32, 21, 0.72);
+	font-size: 14px;
+}
+
+.admin-edit-form__field input {
+	min-height: 42px;
+	padding: 0 12px;
+	border-radius: 12px;
+	border: 1px solid rgba(43, 32, 21, 0.14);
+	background: #fffdf9;
+	color: #2b2015;
+	font: inherit;
+}
+
+.admin-edit-form__field input:focus {
+	outline: none;
+	border-color: rgba(43, 32, 21, 0.38);
+	box-shadow: 0 0 0 3px rgba(43, 32, 21, 0.08);
+}
+
+.admin-edit-form__actions {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	justify-content: flex-end;
+}
+
+.admin-row__btn--danger {
+	background: #7a3027;
+	color: #fffdf9;
+}
+
 .admin-dropdown {
 	position: relative;
 }
@@ -473,6 +539,16 @@
 	.admin-filters {
 		grid-template-columns: 1fr;
 	}
+
+		.admin-edit-form {
+		grid-template-columns: 1fr;
+	}
+
+	.admin-edit-form__header,
+	.admin-edit-form__actions {
+		justify-content: flex-start;
+	}
+
 
 }
 

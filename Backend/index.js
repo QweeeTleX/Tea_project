@@ -83,6 +83,44 @@ function readJsonl(filePath) {
 const cardsPath = path.join(__dirname, "base", "cards.jsonl")
 const cards = readJsonl(cardsPath)
 
+const adminStatePath = path.join(__dirname, "base", "admin-state.json")
+
+function readAdminState() {
+  if (!fs.existsSync(adminStatePath)) {
+    return {
+      deletedIds: [],
+      overrides: {},
+    }
+  }
+
+  const raw = fs.readFileSync(adminStatePath, "utf8")
+  const data = JSON.parse(raw)
+
+  return {
+     deletedIds: Array.isArray(data.deletedIds) ? data.deletedIds : [],
+     overrides: data.overrides && typeof data.overrides === "object" ? data.overrides : {},
+  }
+}
+
+let adminState = readAdminState()
+
+function saveAdminState() {
+  fs.writeFileSync(adminStatePath, JSON.stringify(adminState, null, 2), "utf8")
+}
+
+function applyAdminChanges(card) {
+  return {
+    ...card,
+    ...(adminState.overrides[card.id] || {}),
+  }
+}
+
+function getCatalogCards() {
+  return cards
+    .filter((card) => !adminState.deletedIds.includes(card.id))
+    .map(applyAdminChanges)
+}
+
 function hasText(value) {
   return typeof value === "string" && value.trim().length > 0
 }
@@ -234,11 +272,12 @@ app.get("/api/catalog/:categoryId/:subId", (req, res) => {
     return res.status(404).json({ message: "Subcategory not found" })
   }
 
-  const products = cards.filter(
+  const products = getCatalogCards().filter(
     (card) =>
       card.category === target.dbCategory &&
       card.subcategory === target.dbSubcategory
   )
+
 
   res.json({
     categoryId,
@@ -253,7 +292,8 @@ app.get("/api/catalog/:categoryId/:subId", (req, res) => {
 app.get("/api/product/:productId", (req, res) => {
   const { productId } = req.params
 
-  const product = cards.find((card) => card.id === productId)
+  const product = getCatalogCards().find((card) => card.id === productId)
+
 
   if (!product) {
     return res.status(404).json({ message: "Product not found" })
@@ -280,7 +320,7 @@ app.get("/api/admin/ping", auth, requirePermission("admin:enter"), (req, res) =>
 })
 
 app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res) => {
-  const validProducts = cards
+  const validProducts = getCatalogCards()
     .filter(isValidCard)
     .map((card) => ({
       id: card.id,
@@ -299,7 +339,7 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
       )
     })
 
-    const invalidProducts = cards
+    const invalidProducts = getCatalogCards()
       .filter((card) => !isValidCard(card))
       .map((card) => ({
         id: card.id,
@@ -318,6 +358,86 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
     invalidProducts,
   })
 })
+
+app.put("/api/admin/products/:productId", auth, requirePermission("products:write"), (req, res) => {
+  const { productId } = req.params
+  const product = getCatalogCards().find((card) => card.id === productId)
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" })
+  }
+
+  const { name, cost, category, subcategory, desc } = req.body
+
+  if (!hasText(name)) {
+    return res.status(400).json({ message: "Название товара обязательно" })
+  }
+
+  if (!hasText(category)) {
+    return res.status(400).json({ message: "Категория обязательна" })
+  }
+
+  if (!hasText(subcategory)) {
+    return res.status(400).json({ message: "Подкатегория обязательна" })
+  }
+
+  const nextCost = cost === "" || cost == null ? null : Number(cost)
+
+  if (nextCost !== null && (!Number.isFinite(nextCost) || nextCost < 0)) {
+    return res.status(400).json({ message: "Цена должна быть положительным числом" })
+  }
+
+  const override = {
+    name: name.trim(),
+    cost: nextCost,
+    category: category.trim(),
+    subcategory: subcategory.trim(),
+    desc: typeof desc === "string" ? desc.trim() : product.desc,
+  }
+
+  adminState.overrides[productId] = override
+  saveAdminState()
+
+  const updatedProduct = {
+    ...product,
+    ...override,
+  }
+
+  res.json({
+    product: {
+      id: updatedProduct.id,
+      name: updatedProduct.name,
+      cost: updatedProduct.cost,
+      category: updatedProduct.category,
+      subcategory: updatedProduct.subcategory,
+      pic: updatedProduct.pic,
+      desc: updatedProduct.desc,
+      status: "published",
+    },
+  })
+})
+
+app.delete("/api/admin/products/:productId", auth, requirePermission("products:write"), (req, res) => {
+  const { productId } = req.params
+  const product = getCatalogCards().find((card) => card.id === productId)
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" })
+  }
+
+  if (!adminState.deletedIds.includes(productId)) {
+    adminState.deletedIds.push(productId)
+  }
+
+  delete adminState.overrides[productId]
+  saveAdminState()
+
+  res.json({
+    ok: true,
+    id: productId,
+  })
+})
+
 
 app.get("/", (req, res) => res.send("Backend is working!"))
 
