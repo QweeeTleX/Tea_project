@@ -351,6 +351,7 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
       category: card.category || "Без категории",
       subcategory: card.subcategory || "Без подкатегории",
       pic: Array.isArray(card.pic) ? card.pic : [],
+      desc: typeof card.desc === "string" ? card.desc : "",
       status: "published",
     }))
     .sort((a, b) => {

@@ -23,6 +23,7 @@ type AdminProductRow = {
   cost: number | null
   category: string
   subcategory: string
+  desc: string
   price: string
   status: "published" | "draft"
 }
@@ -34,6 +35,7 @@ type AdminApiProduct = {
   category: string
   subcategory: string
   pic: string[]
+  desc: string
   status: "published" | "draft"
 }
 
@@ -123,6 +125,7 @@ function Admin() {
   const [editCost, setEditCost] = useState("")
   const [editCategory, setEditCategory] = useState("")
   const [editSubcategory, setEditSubcategory] = useState("")
+  const [editDesc, setEditDesc] = useState("")
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false)
   const [isEditSubcategoryOpen, setIsEditSubcategoryOpen] = useState(false)
   const [isSavingProduct, setIsSavingProduct] = useState(false)
@@ -261,6 +264,7 @@ function Admin() {
       cost: product.cost,
       category: product.category,
       subcategory: product.subcategory,
+      desc: product.desc || "",
       price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
       status: product.status,
     }))
@@ -356,6 +360,7 @@ function Admin() {
         setEditCost("")
         setEditCategory(selectedCategory === "all" ? "" : selectedCategory)
         setEditSubcategory(selectedSubcategory === "all" ? "" : selectedSubcategory)
+        setEditDesc("")
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
@@ -368,6 +373,7 @@ function Admin() {
         setEditCost(product.cost != null ? String(product.cost) : "")
         setEditCategory(product.category)
         setEditSubcategory(product.subcategory)
+        setEditDesc(product.desc || "")
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
@@ -380,6 +386,7 @@ function Admin() {
         setEditCost("")
         setEditCategory("")
         setEditSubcategory("")
+        setEditDesc("")
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
@@ -411,7 +418,8 @@ function Admin() {
               name: editName,
               cost: editCost,
               category: editCategory,
-              subcategory: editSubcategory
+              subcategory: editSubcategory,
+              desc: editDesc,
             }),
           })
 
@@ -900,7 +908,7 @@ function Admin() {
                             </button>
                           </li>
                         ) : null}
-                          
+
                         {subcategoryOptions.map((subcategory) => (
                           <li key={subcategory}>
                             <button
@@ -917,6 +925,15 @@ function Admin() {
                         ))}
                       </ul>
                     </div>
+                  </label>
+
+                  <label className="admin-edit-form__field admin-edit-form__field--wide">
+                    <span>Описание</span>
+                    <textarea
+                      value={editDesc}
+                      onChange={(event) => setEditDesc(event.target.value)}
+                      placeholder="Кратко опиши товар"
+                    />
                   </label>
 
                   <div className="admin-edit-form__actions">
