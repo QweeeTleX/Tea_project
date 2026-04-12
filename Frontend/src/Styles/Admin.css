@@ -423,11 +423,35 @@
 	font: inherit;
 }
 
+
 .admin-edit-form__field input:focus {
 	outline: none;
 	border-color: rgba(43, 32, 21, 0.38);
 	box-shadow: 0 0 0 3px rgba(43, 32, 21, 0.08);
 }
+
+.admin-edit-form .admin-dropdown__button {
+	min-height: 42px;
+	padding: 0 16px;
+	text-align: left;
+}
+
+.admin-edit-form .admin-dropdown__list {
+	max-height: 220px;
+	overflow-y: auto;
+	padding: 8px;
+}
+
+.admin-edit-form .admin-dropdown__option {
+	padding: 11px 14px;
+}
+
+.admin-dropdown__button:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+	background: #f3ede6;
+}
+
 
 .admin-edit-form__actions {
 	grid-column: 1 / -1;
@@ -499,6 +523,21 @@
 	overflow-wrap: anywhere;
 	cursor: pointer;
 }
+
+.admin-dropdown__option--reset {
+	color: #8a6242;
+	font-weight: 600;
+	border-bottom: 1px solid rgba(43, 32, 21, 0.08);
+	margin-bottom: 4px;
+	padding-bottom: 12px;
+}
+
+.admin-dropdown__option--reset:hover {
+	background: #f5e9dc;
+	color: #6b4b31;
+}
+
+
 
 .admin-dropdown__option:hover {
 	background: #f0e6da;

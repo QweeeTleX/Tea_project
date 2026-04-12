@@ -54,6 +54,22 @@ type AdminProductsResponse = {
   message?: string
 }
 
+type AdminCatalogSubcategoryOption = {
+  subcategoryId: string
+  subcategory: string
+}
+
+type AdminCatalogCategoryOption = {
+  categoryId: string
+  category: string
+  subcategories: AdminCatalogSubcategoryOption[]
+}
+
+type AdminCatalogOptionsResponse = {
+  categories?: AdminCatalogCategoryOption[]
+  message?: string
+}
+
 type RequestStatus = "idle" | "loading" | "success" | "error"
 
 type ProductSort = "name-asc" | "price-asc" | "price-desc"
@@ -83,6 +99,9 @@ function Admin() {
   const [productsError, setProductsError] = useState("")
   const [invalidProducts, setInvalidProducts] = useState<AdminInvalidProduct[]>([])
 
+  const [catalogOptions, setCatalogOptions] = useState<AdminCatalogCategoryOption[]>([])
+  const [catalogOptionsError, setCatalogOptionsError] = useState("")
+
   /*sorts admin константы*/
   
   const [searchQuery, setSearchQuery] = useState("")
@@ -104,6 +123,8 @@ function Admin() {
   const [editCost, setEditCost] = useState("")
   const [editCategory, setEditCategory] = useState("")
   const [editSubcategory, setEditSubcategory] = useState("")
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false)
+  const [isEditSubcategoryOpen, setIsEditSubcategoryOpen] = useState(false)
   const [isSavingProduct, setIsSavingProduct] = useState(false)
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
   const [productActionError, setProductActionError] = useState("")
@@ -186,6 +207,48 @@ function Admin() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+
+    async function loadCatalogOptions() {
+      setCatalogOptionsError("")
+
+      try {
+        const res = await fetch(`${API_BASE}/admin/catalog-options`, {
+          credentials: "include"
+        })
+
+        const data = (await res.json().catch(() => ({}))) as Partial<AdminCatalogOptionsResponse>
+
+        if (!res.ok) {
+          const message =
+            typeof data.message === "string"
+              ? data.message
+              : "Не удалось загрузить структуру каталога"
+
+          throw new Error(message)    
+        }
+
+        if (cancelled) return
+
+        setCatalogOptions(Array.isArray(data.categories) ? data.categories : [])
+      } catch (error) {
+        if (cancelled) return
+
+        setCatalogOptions([])
+        setCatalogOptionsError(
+          error instanceof Error ? error.message : "Не удалось загрузить структуру каталога"
+        )
+      }
+    }
+
+    void loadCatalogOptions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
     setSelectedSubcategory("all")
   }, [selectedCategory])
 
@@ -236,7 +299,24 @@ function Admin() {
         ? "По имени А-Я"
         : productSort === "price-asc"
           ? "Сначала дешевле"
-          : "Сначала дороже"  
+          : "Сначала дороже"
+
+    const selectedCategoryOption =
+      catalogOptions.find((option) => option.category === editCategory) || null
+      
+    const categoryOptions = catalogOptions.map((option) => option.category)
+    
+    const subcategoryOptions = selectedCategoryOption
+      ? selectedCategoryOption.subcategories.map((option) => option.subcategory)
+      : []
+
+    const editCategoryLabel = editCategory || "Выберите категорию"
+
+    const editSubcategoryLabel = editSubcategory
+      ? editSubcategory
+      : editCategory
+        ? "Выберите подкатегорию"
+        : "Сначала выберите категорию"
 
     const filteredRows = productRows
       .filter((product) => {
@@ -277,6 +357,8 @@ function Admin() {
         setEditCategory(selectedCategory === "all" ? "" : selectedCategory)
         setEditSubcategory(selectedSubcategory === "all" ? "" : selectedSubcategory)
         setProductActionError("")
+        setIsEditCategoryOpen(false)
+        setIsEditSubcategoryOpen(false)
       }
 
       function startEditProduct(product: AdminProductRow) {
@@ -287,6 +369,8 @@ function Admin() {
         setEditCategory(product.category)
         setEditSubcategory(product.subcategory)
         setProductActionError("")
+        setIsEditCategoryOpen(false)
+        setIsEditSubcategoryOpen(false)
       }
 
       function cancelEditProduct() {
@@ -297,6 +381,8 @@ function Admin() {
         setEditCategory("")
         setEditSubcategory("")
         setProductActionError("")
+        setIsEditCategoryOpen(false)
+        setIsEditSubcategoryOpen(false)
       }
 
       async function saveProduct(event: FormEvent<HTMLFormElement>) {
@@ -728,20 +814,109 @@ function Admin() {
 
                   <label className="admin-edit-form__field">
                     <span>Категория</span>
-                    <input
-                      type="text"
-                      value={editCategory}
-                      onChange={(event) => setEditCategory(event.target.value)}
-                    />
+                    <div className={`admin-dropdown ${isEditCategoryOpen ? "admin-dropdown--open" : ""}`}>
+                      <button
+                        type="button"
+                        className="admin-dropdown__button"
+                        onClick={() => {
+                          setIsEditCategoryOpen((current) => !current)
+                          setIsEditSubcategoryOpen(false)
+                        }}
+                        aria-expanded={isEditCategoryOpen}
+                      >
+                        <span>{editCategoryLabel}</span>
+                        <span>v</span>
+                      </button>
+
+                      <ul className="admin-dropdown__list">
+                        {editCategory ? (
+                          <li>
+                            <button
+                              type="button"
+                              className="admin-dropdown__option admin-dropdown__option--reset"
+                              onClick={() => {
+                                setEditCategory("")
+                                setEditSubcategory("")
+                                setIsEditCategoryOpen(false)
+                                setIsEditSubcategoryOpen(false)
+                              }}
+                            >
+                              Сбросить выбор
+                            </button>
+                          </li>
+                        ) : null}
+
+                        {categoryOptions.map((category) => (
+                          <li key={category}>
+                            <button
+                              type="button"
+                              className="admin-dropdown__option"
+                              onClick={() => {
+                                setEditCategory(category)
+                                setEditSubcategory("")
+                                setIsEditCategoryOpen(false)
+                                setIsEditSubcategoryOpen(false)
+                              }}
+                            >
+                              {category}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </label>
 
                   <label className="admin-edit-form__field">
                     <span>Подкатегория</span>
-                    <input
-                      type="text"
-                      value={editSubcategory}
-                      onChange={(event) => setEditSubcategory(event.target.value)}
-                    />
+                    <div className={`admin-dropdown ${isEditSubcategoryOpen ? "admin-dropdown--open" : ""}`}>
+                      <button
+                        type="button"
+                        className="admin-dropdown__button"
+                        onClick={() => {
+                          if (!editCategory) return
+
+                          setIsEditSubcategoryOpen((current) => !current)
+                          setIsEditCategoryOpen(false)
+                        }}
+                        disabled={!editCategory}
+                        aria-expanded={isEditSubcategoryOpen}
+                      >
+                        <span>{editSubcategoryLabel}</span>
+                        <span>v</span>
+                      </button>
+
+                      <ul className="admin-dropdown__list">
+                        {editSubcategory ? (
+                          <li>
+                            <button
+                              type="button"
+                              className="admin-dropdown__option admin-dropdown__option--reset"
+                              onClick={() => {
+                                setEditSubcategory("")
+                                setIsEditSubcategoryOpen(false)
+                              }}
+                            >
+                              Сбросить выбор
+                            </button>
+                          </li>
+                        ) : null}
+                          
+                        {subcategoryOptions.map((subcategory) => (
+                          <li key={subcategory}>
+                            <button
+                              type="button"
+                              className="admin-dropdown__option"
+                              onClick={() => {
+                                setEditSubcategory(subcategory)
+                                setIsEditSubcategoryOpen(false)
+                              }}
+                            >
+                              {subcategory}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </label>
 
                   <div className="admin-edit-form__actions">

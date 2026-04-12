@@ -202,6 +202,19 @@ function resolveCatalogTarget(categoryId, subId) {
   }
 }
 
+function getAdminCatalogOptions() {
+  return Object.entries(catalogMap).map(([categoryId, categoryConfig]) => ({
+    categoryId,
+    category: categoryConfig.dbCategory,
+    subcategories: Object.entries(categoryConfig.subcategories).map(
+      ([subcategoryId, subcategory]) => ({
+        subcategoryId,
+        subcategory,
+      })
+    ),
+  }))
+}
+
 function signToken(user) {
   return jwt.sign(
     {
@@ -320,6 +333,12 @@ app.get("/api/auth/me", auth, (req, res) => {
 
 app.get("/api/admin/ping", auth, requirePermission("admin:enter"), (req, res) => {
   res.json({ ok: true, message: "Admin access granted" })
+})
+
+app.get("/api/admin/catalog-options", auth, requirePermission("admin:enter"), (req, res) => {
+  res.json({
+    categories: getAdminCatalogOptions(),
+  })
 })
 
 app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res) => {
