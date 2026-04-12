@@ -5,9 +5,51 @@ const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 const fs = require("fs")
 const path = require("path")
+const multer = require("multer")
+
 
 const app = express()
 const imagesPath = path.join(__dirname, "..", "images")
+const adminImagesPath = path.join(imagesPath, "admin")
+
+if (!fs.existsSync(adminImagesPath)) {
+  fs.mkdirSync(adminImagesPath, { recursive: true })
+}
+
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, adminImagesPath)
+  },
+  filename(req, file, cb) {
+    const ext = path.extname(file.originalname || "").toLowerCase()
+    const safeBaseName = path
+      .basename(file.originalname || "image", ext)
+      .replace(/[^a-zA-Z0-9-_]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      || "image"
+
+    cb(null, `${Date.now()}-${safeBaseName}${ext}`)
+  },
+})
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter(req, file, cb) {
+    const isImage = /^image\/(png|jpe?g|webp)$/i.test(file.mimetype)
+
+    if (!isImage) {
+      cb(new Error("Можно загружать только PNG, JPG, JPEG или WEBP"))
+      return
+    }
+
+    cb(null, true)
+  },
+})
+
+
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -382,8 +424,43 @@ app.get("/api/admin/products", auth, requirePermission("admin:enter"), (req, res
   })
 })
 
+app.post(
+  "/api/admin/upload",
+  auth,
+  requirePermission("products:write"),
+  (req, res, next) => {
+    upload.single("image")(req, res, (error) => {
+      if (!error) {
+        next()
+        return
+      }
+
+      if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+        res.status(400).json({ message: "Файл слишком большой. Максимум 5 МБ" })
+        return
+      }
+
+      res.status(400).json({
+        message: error.message || "Не удалось загрузить изображение",
+      })
+    })
+  },
+  (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "Файл изображения обязателен" })
+    }
+
+    const imagePath = `/images/admin/${req.file.filename}`
+
+    res.status(201).json({
+      imagePath,
+    })
+  }
+)
+
+
 app.post("/api/admin/products", auth, requirePermission("products:write"), (req, res) => {
-  const { name, cost, category, subcategory, desc } = req.body
+  const { name, cost, category, subcategory, desc, pic } = req.body
 
   if (!hasText(name)) {
     return res.status(400).json({ message: "Название товара обязательно" })
@@ -406,7 +483,7 @@ app.post("/api/admin/products", auth, requirePermission("products:write"), (req,
   const product = {
     id: `admin-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: name.trim(),
-    pic: [],
+    pic: Array.isArray(pic) ? pic.filter((item) => typeof item === "string" && item.trim()) : [],
     cost: nextCost,
     desc: typeof desc === "string" ? desc.trim() : "",
     category: category.trim(),
@@ -440,7 +517,7 @@ app.put("/api/admin/products/:productId", auth, requirePermission("products:writ
     return res.status(404).json({ message: "Product not found" })
   }
 
-  const { name, cost, category, subcategory, desc } = req.body
+  const { name, cost, category, subcategory, desc, pic } = req.body
 
   if (!hasText(name)) {
     return res.status(400).json({ message: "Название товара обязательно" })
@@ -466,6 +543,9 @@ app.put("/api/admin/products/:productId", auth, requirePermission("products:writ
     category: category.trim(),
     subcategory: subcategory.trim(),
     desc: typeof desc === "string" ? desc.trim() : product.desc,
+    pic: Array.isArray(pic)
+      ? pic.filter((item) => typeof item === "string" && item.trim())
+      : product.pic,
   }
 
   adminState.overrides[productId] = override

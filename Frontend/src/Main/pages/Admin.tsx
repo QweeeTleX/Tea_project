@@ -24,6 +24,7 @@ type AdminProductRow = {
   category: string
   subcategory: string
   desc: string
+  pic: string[]
   price: string
   status: "published" | "draft"
 }
@@ -69,6 +70,11 @@ type AdminCatalogCategoryOption = {
 
 type AdminCatalogOptionsResponse = {
   categories?: AdminCatalogCategoryOption[]
+  message?: string
+}
+
+type AdminUploadResponse = {
+  imagePath?: string
   message?: string
 }
 
@@ -126,6 +132,10 @@ function Admin() {
   const [editCategory, setEditCategory] = useState("")
   const [editSubcategory, setEditSubcategory] = useState("")
   const [editDesc, setEditDesc] = useState("")
+  const [editPic, setEditPic] = useState<string[]>([])
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null)
+  const [previewImageUrl, setPreviewImageUrl] = useState("")
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false)
   const [isEditSubcategoryOpen, setIsEditSubcategoryOpen] = useState(false)
   const [isSavingProduct, setIsSavingProduct] = useState(false)
@@ -252,6 +262,24 @@ function Admin() {
   }, [])
 
   useEffect(() => {
+    if (selectedImageFile) {
+      const objectUrl = URL.createObjectURL(selectedImageFile)
+      setPreviewImageUrl(objectUrl)
+
+      return () => {
+        URL.revokeObjectURL(objectUrl)
+      }
+    }
+
+    if (editPic[0]) {
+      setPreviewImageUrl(`http://localhost:5000${editPic[0]}`)
+      return
+    }
+
+    setPreviewImageUrl("")
+  }, [selectedImageFile, editPic])
+
+  useEffect(() => {
     setSelectedSubcategory("all")
   }, [selectedCategory])
 
@@ -265,6 +293,7 @@ function Admin() {
       category: product.category,
       subcategory: product.subcategory,
       desc: product.desc || "",
+      pic: product.pic || [],
       price: product.cost != null ? `${product.cost} ₽` : "Цена позже",
       status: product.status,
     }))
@@ -361,6 +390,8 @@ function Admin() {
         setEditCategory(selectedCategory === "all" ? "" : selectedCategory)
         setEditSubcategory(selectedSubcategory === "all" ? "" : selectedSubcategory)
         setEditDesc("")
+        setEditPic([])
+        setSelectedImageFile(null)
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
@@ -374,6 +405,8 @@ function Admin() {
         setEditCategory(product.category)
         setEditSubcategory(product.subcategory)
         setEditDesc(product.desc || "")
+        setEditPic(product.pic || [])
+        setSelectedImageFile(null)
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
@@ -387,9 +420,45 @@ function Admin() {
         setEditCategory("")
         setEditSubcategory("")
         setEditDesc("")
+        setEditPic([])
+        setSelectedImageFile(null)
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
+      }
+
+      async function uploadImage() {
+        if (!selectedImageFile) {
+          return editPic
+        }
+
+        setIsUploadingImage(true)
+
+        try {
+          const formData = new FormData()
+          formData.append("image", selectedImageFile)
+
+          const res = await fetch(`${API_BASE}/admin/upload`, {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+          })
+
+          const data = (await res.json().catch(() => ({}))) as AdminUploadResponse
+
+          if (!res.ok || !data.imagePath) {
+            throw new Error(data.message || "Не удалось загрузить изображение")
+          }
+
+          const nextPic = [data.imagePath]
+
+          setEditPic(nextPic)
+          setSelectedImageFile(null)
+
+          return nextPic
+        } finally {
+          setIsUploadingImage(false)
+        }
       }
 
       async function saveProduct(event: FormEvent<HTMLFormElement>) {
@@ -401,6 +470,8 @@ function Admin() {
         setProductActionError("")
 
         try {
+          const nextPic = await uploadImage()
+
           const requestUrl = isCreatingProduct
             ? `${API_BASE}/admin/products`
             : `${API_BASE}/admin/products/${editingProductId}`
@@ -420,6 +491,7 @@ function Admin() {
               category: editCategory,
               subcategory: editSubcategory,
               desc: editDesc,
+              pic: nextPic,
             }),
           })
 
@@ -934,6 +1006,31 @@ function Admin() {
                       onChange={(event) => setEditDesc(event.target.value)}
                       placeholder="Кратко опиши товар"
                     />
+                  </label>
+
+                  <label className="admin-edit-form__field admin-edit-form__field--wide">
+                    <span>Изображение</span>
+
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] || null
+                        setSelectedImageFile(file)                       
+                      }}
+                    />
+
+                    {selectedImageFile ? (
+                      <div className="admin-edit-form__hint">
+                        Выбран файл: {selectedImageFile.name}
+                      </div>
+                    ) : null}
+
+                    {previewImageUrl ? (
+                      <div className="admin-edit-form__preview">
+                        <img src={previewImageUrl} alt="Превью товара" />
+                      </div>
+                    ) : null}
                   </label>
 
                   <div className="admin-edit-form__actions">
