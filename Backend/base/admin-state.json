@@ -25,6 +25,18 @@
       "category": "Посуда и товары",
       "subcategory": "Инструменты",
       "source_file": ""
+    },
+    {
+      "id": "admin-1776108400244-6a3e5c0d5d89d",
+      "name": "f",
+      "pic": [
+        "/images/admin/1776108385645-Discord_vGerQoX4AX.png"
+      ],
+      "cost": null,
+      "desc": "",
+      "category": "Китайский Чай",
+      "subcategory": "Желтый Чай",
+      "source_file": ""
     }
   ]
 }
