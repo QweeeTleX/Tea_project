@@ -1008,30 +1008,43 @@ function Admin() {
                     />
                   </label>
 
-                  <label className="admin-edit-form__field admin-edit-form__field--wide">
+                  <div className="admin-edit-form__field admin-edit-form__field--wide">
                     <span>Изображение</span>
 
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0] || null
-                        setSelectedImageFile(file)                       
-                      }}
-                    />
+                    <div className="admin-file-input">
+                      <input
+                        id="admin-image-upload"
+                        className="admin-file-input__native"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] || null
+                          setSelectedImageFile(file)
+                        }}
+                      />
 
-                    {selectedImageFile ? (
-                      <div className="admin-edit-form__hint">
-                        Выбран файл: {selectedImageFile.name}
-                      </div>
-                    ) : null}
+                      <label htmlFor="admin-image-upload" className="admin-file-input__label">
+                        <span className="admin-file-input__button">
+                          {selectedImageFile ? "Выбрать другое" : "Выбрать файл"}
+                        </span>
 
-                    {previewImageUrl ? (
-                      <div className="admin-edit-form__preview">
-                        <img src={previewImageUrl} alt="Превью товара" />
-                      </div>
-                    ) : null}
-                  </label>
+                        <span className="admin-file-input__name">
+                          {selectedImageFile
+                            ? selectedImageFile.name
+                            : editPic[0]
+                              ? "Текущее изображение загружено"
+                              : "PNG, JPG или WEBP до 5 МБ"}
+                        </span>
+                      </label>
+                    </div>
+
+                  {previewImageUrl ? (
+                    <div className="admin-edit-form__preview">
+                      <img src={previewImageUrl} alt="Превью товара" />
+                    </div>
+                  ) : null}
+                </div>
+
 
                   <div className="admin-edit-form__actions">
                     <button
