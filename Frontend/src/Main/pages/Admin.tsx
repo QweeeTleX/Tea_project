@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from "react"
+import { type FormEvent, useEffect, useRef, useState } from "react"
 import "../../Styles/Admin.css"
 
 const API_BASE = "http://localhost:5000/api"
@@ -141,6 +141,8 @@ function Admin() {
   const [isSavingProduct, setIsSavingProduct] = useState(false)
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
   const [productActionError, setProductActionError] = useState("")
+
+  const editFormRef = useRef<HTMLFormElement | null>(null)
 
 
 
@@ -395,6 +397,13 @@ function Admin() {
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
+
+        requestAnimationFrame(() => {
+          editFormRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          })
+        })
       }
 
       function startEditProduct(product: AdminProductRow) {
@@ -410,6 +419,13 @@ function Admin() {
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
+
+        requestAnimationFrame(() => {
+          editFormRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          })
+        })
       }
 
       function cancelEditProduct() {
@@ -849,6 +865,7 @@ function Admin() {
 
               {editingProductId || isCreatingProduct ? (
                 <form
+                  ref={editFormRef}
                   className="admin-edit-form"
                   onSubmit={(event) => void saveProduct(event)}
                 >

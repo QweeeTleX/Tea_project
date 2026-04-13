@@ -384,6 +384,7 @@
 	border-radius: 18px;
 	border: 1px solid rgba(43, 32, 21, 0.14);
 	background: #f8f2ea;
+	scroll-margin-top: 96px;
 }
 
 .admin-edit-form__header {
