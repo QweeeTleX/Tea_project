@@ -143,6 +143,7 @@ function Admin() {
   const [productActionError, setProductActionError] = useState("")
 
   const editFormRef = useRef<HTMLFormElement | null>(null)
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
 
 
 
@@ -441,6 +442,19 @@ function Admin() {
         setProductActionError("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
+      }
+
+      function clearSelectedImageFile() {
+        setSelectedImageFile(null)
+
+        if (imageInputRef.current) {
+          imageInputRef.current.value = ""
+        }
+      }
+
+      function removeProductImage() {
+        clearSelectedImageFile()
+        setEditPic([])
       }
 
       async function uploadImage() {
@@ -1030,6 +1044,7 @@ function Admin() {
 
                     <div className="admin-file-input">
                       <input
+                        ref={imageInputRef}
                         id="admin-image-upload"
                         className="admin-file-input__native"
                         type="file"
@@ -1053,6 +1068,26 @@ function Admin() {
                               : "PNG, JPG или WEBP до 5 МБ"}
                         </span>
                       </label>
+                      
+                      <div className="admin-file-input__actions">
+                        {selectedImageFile ? (
+                          <button
+                            type="button"
+                            className="admin-file-input__remove"
+                            onClick={clearSelectedImageFile}
+                          >
+                            Убрать выбранный файл
+                          </button>  
+                        ) : editPic[0] ? (
+                          <button
+                            type="button"
+                            className="admin-file-input__remove"
+                            onClick={removeProductImage}
+                          >
+                            Удалить изображение
+                          </button>  
+                        ) : null}
+                      </div>
                     </div>
 
                   {previewImageUrl ? (

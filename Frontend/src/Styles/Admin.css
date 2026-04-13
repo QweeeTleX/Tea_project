@@ -511,6 +511,38 @@
 	white-space: nowrap;
 }
 
+.admin-file-input__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: nowrap;
+	margin-top: 10px;
+}
+
+.admin-file-input__remove {
+	min-height: 38px;
+	padding: 0 14px;
+	border-radius: 12px;
+	border: 1px solid rgba(145, 61, 47, 0.18);
+	background: #fff7f4;
+	color: #8a382d;
+	font: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.admin-file-input__remove:hover {
+	border-color: rgba(145, 61, 47, 0.32);
+	background: #fdf0ea;
+}
+
+.admin-file-input__remove:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 .admin-edit-form__preview {
 	width: 180px;
 	height: 180px;
