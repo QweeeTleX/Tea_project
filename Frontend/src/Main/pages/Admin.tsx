@@ -1,86 +1,24 @@
 import { type FormEvent, useEffect, useRef, useState } from "react"
+import type {
+  AdminApiProduct,
+  AdminCatalogCategoryOption,
+  AdminCatalogOptionsResponse,
+  AdminInvalidProduct,
+  AdminMetric,
+  AdminProductRow,
+  AdminProductsResponse,
+  AdminSection,
+  AdminSectionId,
+  AdminUploadResponse,
+  ProductSort,
+  RequestStatus,
+} from "../types/admin"
+import { AdminProductForm } from "../features/AdminProductForm"
+import { AdminProductFilters } from "../features/AdminProductFilters"
+
 import "../../Styles/Admin.css"
 
 const API_BASE = "http://localhost:5000/api"
-
-type AdminSectionId = "overview" | "products" | "categories" | "orders" | "settings"
-
-type AdminSection = {
-  id: AdminSectionId
-  label: string
-  note: string
-}
-
-type AdminMetric = {
-  label: string
-  value: string
-  hint: string
-}
-
-type AdminProductRow = {
-  id: string
-  name: string
-  cost: number | null
-  category: string
-  subcategory: string
-  desc: string
-  pic: string[]
-  price: string
-  status: "published" | "draft"
-}
-
-type AdminApiProduct = {
-  id: string
-  name: string
-  cost: number | null
-  category: string
-  subcategory: string
-  pic: string[]
-  desc: string
-  status: "published" | "draft"
-}
-
-type AdminInvalidProduct = {
-  id: string
-  source_file: string
-  name: string
-  category: string
-  subcategory: string
-  issues: string[]
-}
-
-type AdminProductsResponse = {
-  count: number
-  products: AdminApiProduct[]
-  invalidCount: number
-  invalidProducts: AdminInvalidProduct[]
-  message?: string
-}
-
-type AdminCatalogSubcategoryOption = {
-  subcategoryId: string
-  subcategory: string
-}
-
-type AdminCatalogCategoryOption = {
-  categoryId: string
-  category: string
-  subcategories: AdminCatalogSubcategoryOption[]
-}
-
-type AdminCatalogOptionsResponse = {
-  categories?: AdminCatalogCategoryOption[]
-  message?: string
-}
-
-type AdminUploadResponse = {
-  imagePath?: string
-  message?: string
-}
-
-type RequestStatus = "idle" | "loading" | "success" | "error"
-
-type ProductSort = "name-asc" | "price-asc" | "price-desc"
 
 const adminSections: AdminSection[] = [
   { id: "overview", label: "Обзор", note: "Статус админки и быстрые действия" },
@@ -734,413 +672,62 @@ function Admin() {
                 </button>
               </div>
 
-              <div className="admin-filters">
-                <input
-                  className="admin-filters__input"
-                  type="text"
-                  placeholder="Поиск по названию"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
+              <AdminProductFilters
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCategoryLabel={selectedCategoryLabel}
+                selectedSubcategoryLabel={selectedSubcategoryLabel}
+                selectedSortLabel={selectedSortLabel}
+                isCategoryOpen={isCategoryOpen}
+                setIsCategoryOpen={setIsCategoryOpen}
+                isSubcategoryOpen={isSubcategoryOpen}
+                setIsSubcategoryOpen={setIsSubcategoryOpen}
+                isSortOpen={isSortOpen}
+                setIsSortOpen={setIsSortOpen}
+                availableCategories={availableCategories}
+                availableSubcategories={availaSubcategories}
+                setSelectedCategory={setSelectedCategory}
+                setSelectedSubcategory={setSelectedSubcategory}
+                setProductSort={setProductSort}
+                filteredCount={filteredRows.length}
+                totalCount={productRows.length}
+              />
 
-                <div className={`admin-dropdown ${isCategoryOpen ? "admin-dropdown--open" : ""}`}>
-                  <button
-                    type="button"
-                    className="admin-dropdown__button"
-                    onClick={() => {
-                      setIsCategoryOpen((current) => !current)
-                      setIsSubcategoryOpen(false)
-                      setIsSortOpen(false)
-                    }}
-                  >
-                    <span>{selectedCategoryLabel}</span>
-                    <span>v</span>
-                  </button>
-
-                  <ul className="admin-dropdown__list">
-                    <li>
-                      <button
-                        type="button"
-                        className="admin-dropdown__option"
-                        onClick={() => {
-                          setSelectedCategory("all")
-                          setIsCategoryOpen(false)
-                        }}
-                      >
-                        Все категории
-                      </button>
-                    </li>
-
-                    {availableCategories.map((category) => (
-                      <li key={category}>
-                        <button
-                          type="button"
-                          className="admin-dropdown__option"
-                          onClick={() => {
-                            setSelectedCategory(category)
-                            setIsCategoryOpen(false)
-                          }}
-                        >
-                          {category}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className={`admin-dropdown ${isSubcategoryOpen ? "admin-dropdown--open" : ""}`}>
-                  <button
-                    type="button"
-                    className="admin-dropdown__button"
-                    onClick={() => {
-                      setIsSubcategoryOpen((current) => !current)
-                      setIsCategoryOpen(false)
-                      setIsSortOpen(false)
-                    }}
-                  >
-                    <span>{selectedSubcategoryLabel}</span>
-                    <span>v</span>
-                  </button>
-
-                  <ul className="admin-dropdown__list">
-                    <li>
-                      <button
-                        type="button"
-                        className="admin-dropdown__option"
-                        onClick={() => {
-                          setSelectedSubcategory("all")
-                          setIsSubcategoryOpen(false)
-                        }}
-                      >
-                        Все подкатегории
-                      </button>
-                    </li>
-
-                    {availaSubcategories.map((subcategory) => (
-                      <li key={subcategory}>
-                        <button
-                          type="button"
-                          className="admin-dropdown__option"
-                          onClick={() => {
-                            setSelectedSubcategory(subcategory)
-                            setIsSubcategoryOpen(false)
-                          }}
-                        >
-                          {subcategory}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className={`admin-dropdown ${isSortOpen ? "admin-dropdown--open" : ""}`}>
-                  <button
-                    type="button"
-                    className="admin-dropdown__button"
-                    onClick={() => {
-                      setIsSortOpen((current) => !current)
-                      setIsCategoryOpen(false)
-                      setIsSubcategoryOpen(false)
-                    }}
-                  >
-                    <span>{selectedSortLabel}</span>
-                    <span>v</span>
-                  </button>
-
-                  <ul className="admin-dropdown__list">
-                    <li>
-                      <button
-                        type="button"
-                        className="admin-dropdown__option"
-                        onClick={() => {
-                          setProductSort("name-asc")
-                          setIsSortOpen(false)
-                        }}
-                      >
-                        По имени А-Я
-                      </button>
-                    </li>
-
-                    <li>
-                      <button
-                        type="button"
-                        className="admin-dropdown__option"
-                        onClick={() => {
-                          setProductSort("price-asc")
-                          setIsSortOpen(false)
-                        }}
-                      >
-                        Сначала дешевле
-                      </button>
-                    </li>
-
-                    <li>
-                      <button
-                        type="button"
-                        className="admin-dropdown__option"
-                        onClick={() => {
-                          setProductSort("price-desc")
-                          setIsSortOpen(false)
-                        }}
-                      >
-                        Сначала дороже
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-
-              </div>
-
-              <div className="admin-filters__meta">
-                Найдено товаров: {filteredRows.length} из {productRows.length}
-              </div>
 
               {editingProductId || isCreatingProduct ? (
-                <form
-                  ref={editFormRef}
-                  className="admin-edit-form"
-                  onSubmit={(event) => void saveProduct(event)}
-                >
-                  <div className="admin-edit-form__header">
-                    <div>
-                      <h4 className="admin-edit-form__title">
-                        {isCreatingProduct ? "Добавление товара" : "Редактирование товара"}
-                      </h4>
-                      <p className="admin-edit-form__text">
-                        Изменения сохраняются отдельно, исходный cards.jsonl не трогаем.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="admin-row__btn admin-row__btn--ghost"
-                      onClick={cancelEditProduct}
-                      disabled={isSavingProduct}
-                    >
-                      Закрыть
-                    </button>
-                  </div>
-
-                  <label className="admin-edit-form__field">
-                    <span>Название</span>
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(event) => setEditName(event.target.value)}
-                    />
-                  </label>
-
-                  <label className="admin-edit-form__field">
-                    <span>Цена</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={editCost}
-                      onChange={(event) => setEditCost(event.target.value)}
-                      placeholder="Цена позже"
-                    />
-                  </label>
-
-                  <label className="admin-edit-form__field">
-                    <span>Категория</span>
-                    <div className={`admin-dropdown ${isEditCategoryOpen ? "admin-dropdown--open" : ""}`}>
-                      <button
-                        type="button"
-                        className="admin-dropdown__button"
-                        onClick={() => {
-                          setIsEditCategoryOpen((current) => !current)
-                          setIsEditSubcategoryOpen(false)
-                        }}
-                        aria-expanded={isEditCategoryOpen}
-                      >
-                        <span>{editCategoryLabel}</span>
-                        <span>v</span>
-                      </button>
-
-                      <ul className="admin-dropdown__list">
-                        {editCategory ? (
-                          <li>
-                            <button
-                              type="button"
-                              className="admin-dropdown__option admin-dropdown__option--reset"
-                              onClick={() => {
-                                setEditCategory("")
-                                setEditSubcategory("")
-                                setIsEditCategoryOpen(false)
-                                setIsEditSubcategoryOpen(false)
-                              }}
-                            >
-                              Сбросить выбор
-                            </button>
-                          </li>
-                        ) : null}
-
-                        {categoryOptions.map((category) => (
-                          <li key={category}>
-                            <button
-                              type="button"
-                              className="admin-dropdown__option"
-                              onClick={() => {
-                                setEditCategory(category)
-                                setEditSubcategory("")
-                                setIsEditCategoryOpen(false)
-                                setIsEditSubcategoryOpen(false)
-                              }}
-                            >
-                              {category}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </label>
-
-                  <label className="admin-edit-form__field">
-                    <span>Подкатегория</span>
-                    <div className={`admin-dropdown ${isEditSubcategoryOpen ? "admin-dropdown--open" : ""}`}>
-                      <button
-                        type="button"
-                        className="admin-dropdown__button"
-                        onClick={() => {
-                          if (!editCategory) return
-
-                          setIsEditSubcategoryOpen((current) => !current)
-                          setIsEditCategoryOpen(false)
-                        }}
-                        disabled={!editCategory}
-                        aria-expanded={isEditSubcategoryOpen}
-                      >
-                        <span>{editSubcategoryLabel}</span>
-                        <span>v</span>
-                      </button>
-
-                      <ul className="admin-dropdown__list">
-                        {editSubcategory ? (
-                          <li>
-                            <button
-                              type="button"
-                              className="admin-dropdown__option admin-dropdown__option--reset"
-                              onClick={() => {
-                                setEditSubcategory("")
-                                setIsEditSubcategoryOpen(false)
-                              }}
-                            >
-                              Сбросить выбор
-                            </button>
-                          </li>
-                        ) : null}
-
-                        {subcategoryOptions.map((subcategory) => (
-                          <li key={subcategory}>
-                            <button
-                              type="button"
-                              className="admin-dropdown__option"
-                              onClick={() => {
-                                setEditSubcategory(subcategory)
-                                setIsEditSubcategoryOpen(false)
-                              }}
-                            >
-                              {subcategory}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </label>
-
-                  <label className="admin-edit-form__field admin-edit-form__field--wide">
-                    <span>Описание</span>
-                    <textarea
-                      value={editDesc}
-                      onChange={(event) => setEditDesc(event.target.value)}
-                      placeholder="Кратко опиши товар"
-                    />
-                  </label>
-
-                  <div className="admin-edit-form__field admin-edit-form__field--wide">
-                    <span>Изображение</span>
-
-                    <div className="admin-file-input">
-                      <input
-                        ref={imageInputRef}
-                        id="admin-image-upload"
-                        className="admin-file-input__native"
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0] || null
-                          setSelectedImageFile(file)
-                        }}
-                      />
-
-                      <label htmlFor="admin-image-upload" className="admin-file-input__label">
-                        <span className="admin-file-input__button">
-                          {selectedImageFile ? "Выбрать другое" : "Выбрать файл"}
-                        </span>
-
-                        <span className="admin-file-input__name">
-                          {selectedImageFile
-                            ? selectedImageFile.name
-                            : editPic[0]
-                              ? "Текущее изображение загружено"
-                              : "PNG, JPG или WEBP до 5 МБ"}
-                        </span>
-                      </label>
-                      
-                      <div className="admin-file-input__actions">
-                        {selectedImageFile ? (
-                          <button
-                            type="button"
-                            className="admin-file-input__remove"
-                            onClick={clearSelectedImageFile}
-                          >
-                            Убрать выбранный файл
-                          </button>  
-                        ) : editPic[0] ? (
-                          <button
-                            type="button"
-                            className="admin-file-input__remove"
-                            onClick={removeProductImage}
-                          >
-                            Удалить изображение
-                          </button>  
-                        ) : null}
-                      </div>
-                    </div>
-
-                  {previewImageUrl ? (
-                    <div className="admin-edit-form__preview">
-                      <img src={previewImageUrl} alt="Превью товара" />
-                    </div>
-                  ) : null}
-                </div>
-
-
-                  <div className="admin-edit-form__actions">
-                    <button
-                      type="submit"
-                      className="admin-panel__action"
-                      disabled={isSavingProduct}
-                    >
-                      {isSavingProduct
-                        ? "Сохраняем..."
-                        : isCreatingProduct
-                          ? "Создать"
-                          : "Сохранить"}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="admin-row__btn admin-row__btn--ghost"
-                      onClick={cancelEditProduct}
-                      disabled={isSavingProduct}
-                    >
-                      Отмена
-                    </button>
-                  </div>
-                </form>
+                <AdminProductForm
+                  editFormRef={editFormRef}
+                  imageInputRef={imageInputRef}
+                  isCreatingProduct={isCreatingProduct}
+                  isSavingProduct={isSavingProduct}
+                  editName={editName}
+                  setEditName={setEditName}
+                  editCost={editCost}
+                  setEditCost={setEditCost}
+                  editCategory={editCategory}
+                  setEditCategory={setEditCategory}
+                  editSubcategory={editSubcategory}
+                  setEditSubcategory={setEditSubcategory}
+                  editDesc={editDesc}
+                  setEditDesc={setEditDesc}
+                  editPic={editPic}
+                  selectedImageFile={selectedImageFile}
+                  previewImageUrl={previewImageUrl}
+                  setSelectedImageFile={setSelectedImageFile}
+                  clearSelectedImageFile={clearSelectedImageFile}
+                  removeProductImage={removeProductImage}
+                  cancelEditProduct={cancelEditProduct}
+                  saveProduct={saveProduct}
+                  isEditCategoryOpen={isEditCategoryOpen}
+                  setIsEditCategoryOpen={setIsEditCategoryOpen}
+                  isEditSubcategoryOpen={isEditSubcategoryOpen}
+                  setIsEditSubcategoryOpen={setIsEditSubcategoryOpen}
+                  categoryOptions={categoryOptions}
+                  subcategoryOptions={subcategoryOptions}
+                  editCategoryLabel={editCategoryLabel}
+                  editSubcategoryLabel={editSubcategoryLabel}
+                />
               ) : null}
-
               {productActionSuccess ? (
                 <div className="admin-state admin-state--success">
                   {productActionSuccess}
@@ -1271,3 +858,4 @@ function Admin() {
 }
 
 export default Admin
+
