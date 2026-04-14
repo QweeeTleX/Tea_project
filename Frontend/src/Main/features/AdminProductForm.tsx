@@ -1,4 +1,6 @@
 import type { FormEvent, RefObject } from "react"
+import "../../Styles/AdminDropdown.css"
+import "../../Styles/AdminProductForm.css"
 
 type AdminProductFormProps = {
   editFormRef: RefObject<HTMLFormElement | null>

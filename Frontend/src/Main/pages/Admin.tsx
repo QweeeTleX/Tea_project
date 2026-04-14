@@ -1,10 +1,9 @@
-import { type FormEvent, useEffect, useRef, useState } from "react"
+﻿import { type FormEvent, useEffect, useRef, useState } from "react"
 import type {
   AdminApiProduct,
   AdminCatalogCategoryOption,
   AdminCatalogOptionsResponse,
   AdminInvalidProduct,
-  AdminMetric,
   AdminProductRow,
   AdminProductsResponse,
   AdminSection,
@@ -15,6 +14,7 @@ import type {
 } from "../types/admin"
 import { AdminProductForm } from "../features/AdminProductForm"
 import { AdminProductFilters } from "../features/AdminProductFilters"
+import { AdminOverview } from "../features/AdminOverview"
 
 import "../../Styles/Admin.css"
 
@@ -26,12 +26,6 @@ const adminSections: AdminSection[] = [
   { id: "categories", label: "Категории", note: "Структура каталога" },
   { id: "orders", label: "Заказы", note: "Когда появится checkout" },
   { id: "settings", label: "Настройки", note: "Служебные параметры проекта" },
-]
-
-const adminMetrics: AdminMetric[] = [
-  { label: "Каталог", value: "Под контролем", hint: "Основные витринные страницы уже собраны" },
-  { label: "Корзина", value: "Готова", hint: "Есть контекст, страница и badge" },
-  { label: "TypeScript", value: "Переведен", hint: "Основной frontend уже на TS" },
 ]
 
 function Admin() {
@@ -324,6 +318,23 @@ function Admin() {
         return priceB - priceA
       })
 
+    const totalProductsCount = productRows.length
+
+    const totalCategoriesCount = catalogOptions.length
+
+    const totalSubcategoriesCount = catalogOptions.reduce(
+      (count, category) => count + category.subcategories.length,
+      0
+    )
+
+    const productsWithoutPriceCount = productRows.filter(
+      (product) => product.cost == null
+    ).length
+
+    const productsWithoutImageCount = productRows.filter(
+      (product) => product.pic.length === 0
+    ).length
+
       function startCreateProduct() {
         setIsCreatingProduct(true)
         setEditingProductId(null)
@@ -344,6 +355,14 @@ function Admin() {
             behavior: "smooth",
             block: "start",
           })
+        })
+      }
+
+      function openCreateProductFromOverview() {
+        setActiveSection("products")
+
+        requestAnimationFrame(() => {
+          startCreateProduct()
         })
       }
 
@@ -607,50 +626,20 @@ function Admin() {
           </section>
 
           {activeSection === "overview" ? (
-            <section className="admin-grid">
-              <div className="admin-metrics">
-                {adminMetrics.map((metric) => (
-                  <article key={metric.label} className="admin-card admin-metric">
-                    <div className="admin-metric__label">{metric.label}</div>
-                    <div className="admin-metric__value">{metric.value}</div>
-                    <div className="admin-metric__hint">{metric.hint}</div>
-                  </article>
-                ))}
-              </div>
-
-              <div className="admin-card admin-panel">
-                <div className="admin-panel__header">
-                  <h3 className="admin-panel__title">Что должно быть в MVP админки</h3>
-                </div>
-
-                <div className="admin-checklist">
-                  <div className="admin-checklist__item">
-                    1. Список товаров с кнопками редактирования
-                  </div>
-                  <div className="admin-checklist__item">
-                    2. Форма создания и обновления товара
-                  </div>
-                  <div className="admin-checklist__item">
-                    3. Работа с категориями и подкатегориями
-                  </div>
-                  <div className="admin-checklist__item">
-                    4. Базовый список заказов, когда появится checkout
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-card admin-panel">
-                <div className="admin-panel__header">
-                  <h3 className="admin-panel__title">Почему такой формат правильный</h3>
-                </div>
-
-                <p className="admin-panel__text">
-                  У тебя сейчас нет полноценного admin CRUD API, поэтому лучший шаг
-                  не городить сложную систему, а собрать хороший интерфейсный каркас,
-                  в который потом спокойно встроятся реальные данные.
-                </p>
-              </div>
-            </section>
+            <AdminOverview
+              pingStatus={pingStatus}
+              productStatus={productStatus}
+              productsError={productsError}
+              catalogOptionsError={catalogOptionsError}
+              totalProducts={totalProductsCount}
+              totalCategories={totalCategoriesCount}
+              totalSubcategories={totalSubcategoriesCount}
+              invalidCount={invalidProducts.length}
+              missingPriceCount={productsWithoutPriceCount}
+              missingImageCount={productsWithoutImageCount}
+              onOpenProducts={() => setActiveSection("products")}
+              onCreateProduct={openCreateProductFromOverview}
+            />
           ) : null}
 
           {activeSection === "products" ? (

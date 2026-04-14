@@ -1,4 +1,6 @@
 import type { ProductSort } from "../types/admin"
+import "../../Styles/AdminDropdown.css"
+import "../../Styles/AdminProductFilters.css"
 
 type AdminProductFiltersProps = {
   searchQuery: string
