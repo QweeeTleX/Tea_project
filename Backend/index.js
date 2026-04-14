@@ -152,6 +152,39 @@ function saveAdminState() {
   fs.writeFileSync(adminStatePath, JSON.stringify(adminState, null, 2), "utf8")
 }
 
+function isAdminImagePath(imagePath) {
+  return typeof imagePath === "string" && imagePath.startsWith("/images/admin/")
+}
+
+function getAdminImageFilePath(imagePath) {
+  if (!isAdminImagePath(imagePath)) {
+    return null
+  }
+
+  return path.join(adminImagesPath, path.basename(imagePath))
+}
+
+function removeAdminImages(imagePaths) {
+  const uniquePaths = [...new Set(
+    (Array.isArray(imagePaths) ? imagePaths : []).filter(isAdminImagePath)
+  )]
+
+  for (const imagePath of uniquePaths) {
+    const filePath = getAdminImageFilePath(imagePath)
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      continue
+    }
+
+    try {
+      fs.unlinkSync(filePath)
+    } catch (error) {
+      console.error("Failed to delete admin image:", filePath, error)
+    }
+  }
+}
+
+
 function applyAdminChanges(card) {
   return {
     ...card,
@@ -537,19 +570,29 @@ app.put("/api/admin/products/:productId", auth, requirePermission("products:writ
     return res.status(400).json({ message: "Цена должна быть положительным числом" })
   }
 
+  const nextPic = Array.isArray(pic)
+    ? pic.filter((item) => typeof item === "string" && item.trim())
+    : product.pic
+
+  const currentPic = Array.isArray(product.pic) ? product.pic : []
+
+  const removedImages = currentPic.filter((imagePath) => {
+    return isAdminImagePath(imagePath) && !nextPic.includes(imagePath)
+  })
+
   const override = {
     name: name.trim(),
     cost: nextCost,
     category: category.trim(),
     subcategory: subcategory.trim(),
     desc: typeof desc === "string" ? desc.trim() : product.desc,
-    pic: Array.isArray(pic)
-      ? pic.filter((item) => typeof item === "string" && item.trim())
-      : product.pic,
+    pic: nextPic,
   }
+
 
   adminState.overrides[productId] = override
   saveAdminState()
+  removeAdminImages(removedImages)
 
   const updatedProduct = {
     ...product,
@@ -578,12 +621,20 @@ app.delete("/api/admin/products/:productId", auth, requirePermission("products:w
     return res.status(404).json({ message: "Product not found" })
   }
 
-  if (!adminState.deletedIds.includes(productId)) {
+  const currentPic = Array.isArray(product.pic) ? product.pic : []
+
+  const createdProductIndex = adminState.createdProducts.findIndex((card) => card.id === productId)
+
+  if (createdProductIndex !== -1) {
+    adminState.createdProducts.splice(createdProductIndex, 1)
+  } else if (!adminState.deletedIds.includes(productId)) {
     adminState.deletedIds.push(productId)
   }
 
   delete adminState.overrides[productId]
   saveAdminState()
+  removeAdminImages(currentPic)
+
 
   res.json({
     ok: true,

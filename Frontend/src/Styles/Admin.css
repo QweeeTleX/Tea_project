@@ -263,6 +263,11 @@
 	color: #6b4b31;
 }
 
+.admin-state--success {
+	background: #eef6ee;
+	border-color: #bfd7c0;
+	color: #24442c;
+}
 
 .admin-issues {
   display: grid;

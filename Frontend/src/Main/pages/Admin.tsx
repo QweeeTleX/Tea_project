@@ -141,6 +141,7 @@ function Admin() {
   const [isSavingProduct, setIsSavingProduct] = useState(false)
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
   const [productActionError, setProductActionError] = useState("")
+  const [productActionSuccess, setProductActionSuccess] = useState("")
 
   const editFormRef = useRef<HTMLFormElement | null>(null)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
@@ -396,6 +397,7 @@ function Admin() {
         setEditPic([])
         setSelectedImageFile(null)
         setProductActionError("")
+        setProductActionSuccess("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
 
@@ -418,6 +420,7 @@ function Admin() {
         setEditPic(product.pic || [])
         setSelectedImageFile(null)
         setProductActionError("")
+        setProductActionSuccess("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
 
@@ -440,6 +443,7 @@ function Admin() {
         setEditPic([])
         setSelectedImageFile(null)
         setProductActionError("")
+        setProductActionSuccess("")
         setIsEditCategoryOpen(false)
         setIsEditSubcategoryOpen(false)
       }
@@ -453,8 +457,13 @@ function Admin() {
       }
 
       function removeProductImage() {
+        const confirmed = window.confirm("Удалить текущее изображение у товара?")
+
+        if (!confirmed) return
+
         clearSelectedImageFile()
         setEditPic([])
+        setProductActionSuccess("")
       }
 
       async function uploadImage() {
@@ -545,7 +554,12 @@ function Admin() {
           )
 
 
+          const successMessage = isCreatingProduct
+            ? "Товар создан"
+            : "Изменения товара сохранены"
+
           cancelEditProduct()
+          setProductActionSuccess(successMessage)  
         } catch (error) {
           setProductActionError(
             error instanceof Error ? error.message : "Не удалось сохранить товар"
@@ -562,6 +576,8 @@ function Admin() {
 
         setDeletingProductId(product.id)
         setProductActionError("")
+        setProductActionSuccess("")
+
 
         try {
           const res = await fetch(`${API_BASE}/admin/products/${product.id}`, {
@@ -584,6 +600,8 @@ function Admin() {
           if (editingProductId === product.id) {
             cancelEditProduct()
           }
+
+          setProductActionSuccess(`Товар "${product.name}" удален`)
         } catch (error) {
           setProductActionError(
             error instanceof Error ? error.message : "Не удалось удалить товар"
@@ -1121,6 +1139,12 @@ function Admin() {
                     </button>
                   </div>
                 </form>
+              ) : null}
+
+              {productActionSuccess ? (
+                <div className="admin-state admin-state--success">
+                  {productActionSuccess}
+                </div>
               ) : null}
 
               {productActionError ? (
