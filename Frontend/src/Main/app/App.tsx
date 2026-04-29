@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Outlet } from "react-router-dom"
+﻿import { Routes, Route, Outlet, Link } from "react-router-dom"
 import Home from "../pages/Home"
 import Subcategory from "../pages/Subcategory"
 import Product from "../pages/Product"
@@ -8,16 +8,29 @@ import Admin from "../pages/Admin"
 import RequirePermission from "../auth/RequirePermission"
 import Login from "../pages/Login"
 
-
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <Link to="#">О нас</Link>
+      <Link to="#">Политика конфиденциальности</Link>
+    </footer>
+  )
+}
 
 function Layout() {
   return (
-    <>
+    <div className="site-shell">
       <AppActions />
-      <Outlet />
-    </>
+
+      <main className="site-main">
+        <Outlet />
+      </main>
+
+      <Footer />
+    </div>
   )
 }
+
 
 function App() {
   return (

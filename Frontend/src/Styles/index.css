@@ -25,3 +25,32 @@ svg {
   display: block;
   max-width: 100%;
 }
+
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-main {
+  flex: 1;
+}
+
+.site-footer {
+  padding: 18px 20px 24px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.site-footer a {
+  color: rgba(43, 32, 21, 0.42);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: rgba(43, 32, 21, 0.72);
+}
+
