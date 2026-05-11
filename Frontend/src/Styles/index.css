@@ -4,6 +4,13 @@
   font-family: "Segoe UI", "Arial", sans-serif;
 }
 
+html {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 *,
 *::before,
 *::after {
@@ -13,11 +20,18 @@
 body {
   margin: 0;
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
   background: #f4efe6;
 }
 
 #root {
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 img,
@@ -30,10 +44,14 @@ svg {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .site-main {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .site-footer {
@@ -42,12 +60,24 @@ svg {
   justify-content: center;
   gap: 18px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .site-footer a {
   color: rgba(43, 32, 21, 0.42);
   font-size: 13px;
   text-decoration: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .site-footer a:hover {
