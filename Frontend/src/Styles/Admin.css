@@ -1,6 +1,7 @@
 .admin-page {
 	min-height: 100vh;
 	padding: 88px 24px 40px;
+	overflow-x: clip;
 }
 
 .admin-shell {
@@ -10,6 +11,22 @@
 	grid-template-columns: 280px minmax(0, 1fr);
 	gap: 24px;
 	align-items: start;
+}
+
+.admin-shell,
+.admin-sidebar,
+.admin-main,
+.admin-grid,
+.admin-card,
+.admin-panel,
+.admin-hero,
+.admin-hero > div,
+.admin-panel__header,
+.admin-table,
+.admin-row,
+.admin-row__main {
+	min-width: 0;
+	max-width: 100%;
 }
 
 .admin-sidebar,
@@ -56,6 +73,24 @@
 	margin: 0;
 	color: rgba(43, 32, 21, 0.72);
 	line-height: 1.5;
+}
+
+.admin-sidebar__title,
+.admin-sidebar__text,
+.admin-hero__title,
+.admin-hero__text,
+.admin-panel__title,
+.admin-panel__text,
+.admin-panel__subtitle,
+.admin-nav__label,
+.admin-nav__note,
+.admin-row__name,
+.admin-row__meta,
+.admin-row__price,
+.admin-issue-row__file,
+.admin-issue-row__meta,
+.admin-state {
+	overflow-wrap: anywhere;
 }
 
 .admin-nav {
@@ -133,6 +168,8 @@
 	border: 1px solid rgba(43, 32, 21, 0.12);
 	background: #f8f2ea;
 	color: #2b2015;
+	max-width: 100%;
+	white-space: normal;
 }
 
 .admin-status--loading {
@@ -351,13 +388,30 @@
 
 @media (max-width: 640px) {
   .admin-page {
-    padding: 84px 20px 32px;
+    padding: 84px 12px 32px;
   }
 
   .admin-sidebar,
   .admin-hero,
   .admin-panel {
     border-radius: 18px;
+  }
+
+  .admin-sidebar,
+  .admin-hero,
+  .admin-panel {
+    padding: 16px;
+  }
+
+  .admin-panel__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-hero__action,
+  .admin-panel__action,
+  .admin-row__btn {
+    width: 100%;
   }
 }
 

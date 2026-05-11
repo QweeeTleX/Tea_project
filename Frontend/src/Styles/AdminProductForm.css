@@ -9,6 +9,17 @@
 	scroll-margin-top: 96px;
 }
 
+.admin-edit-form,
+.admin-edit-form__header,
+.admin-edit-form__field,
+.admin-file-input,
+.admin-file-input__label,
+.admin-file-input__actions,
+.admin-edit-form__actions {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .admin-edit-form__header {
 	grid-column: 1 / -1;
 	display: flex;
@@ -27,6 +38,13 @@
 	margin: 6px 0 0;
 	color: rgba(43, 32, 21, 0.68);
 	line-height: 1.45;
+}
+
+.admin-edit-form__title,
+.admin-edit-form__text,
+.admin-edit-form__hint,
+.admin-file-input__name {
+	overflow-wrap: anywhere;
 }
 
 .admin-edit-form__field {
@@ -213,5 +231,30 @@
 	.admin-edit-form__header,
 	.admin-edit-form__actions {
 		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 640px) {
+	.admin-edit-form {
+		padding: 14px;
+		border-radius: 16px;
+	}
+
+	.admin-edit-form__header,
+	.admin-file-input__label,
+	.admin-file-input__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.admin-file-input__button,
+	.admin-file-input__remove {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.admin-edit-form__preview {
+		width: 100%;
+		max-width: 180px;
 	}
 }

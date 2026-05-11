@@ -3,26 +3,6 @@
   "overrides": {},
   "createdProducts": [
     {
-      "id": "admin-1775934305720-a277e9c81c4348",
-      "name": "Ямато",
-      "pic": [],
-      "cost": 66666666,
-      "desc": "",
-      "category": "Артефакт демона",
-      "subcategory": "данные удалены",
-      "source_file": ""
-    },
-    {
-      "id": "admin-1776032943620-affe57931b2718",
-      "name": "Ямато",
-      "pic": [],
-      "cost": 6666666666,
-      "desc": "Артефакт демона для употребления чая в другом измерении",
-      "category": "Посуда и товары",
-      "subcategory": "Инструменты",
-      "source_file": ""
-    },
-    {
       "id": "admin-1776108400244-6a3e5c0d5d89d",
       "name": "f",
       "pic": [

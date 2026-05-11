@@ -1,5 +1,7 @@
 .admin-dropdown {
 	position: relative;
+	min-width: 0;
+	max-width: 100%;
 }
 
 .admin-dropdown__button {
@@ -16,6 +18,14 @@
 	justify-content: space-between;
 	gap: 12px;
 	cursor: pointer;
+	min-width: 0;
+}
+
+.admin-dropdown__button span:first-child {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .admin-dropdown__list {

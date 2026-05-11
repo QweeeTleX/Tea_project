@@ -4,6 +4,14 @@
 	gap: 12px;
 }
 
+.admin-filters,
+.admin-filters > *,
+.admin-filters__input,
+.admin-filters__meta {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .admin-filters__input {
 	min-height: 44px;
 	padding: 0 14px;
@@ -17,6 +25,7 @@
 .admin-filters__meta {
 	color: rgba(43, 32, 21, 0.68);
 	font-size: 14px;
+	overflow-wrap: anywhere;
 }
 
 @media (max-width: 980px) {

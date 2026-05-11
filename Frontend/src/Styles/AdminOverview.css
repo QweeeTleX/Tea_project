@@ -4,6 +4,19 @@
 	gap: 16px;
 }
 
+.admin-metrics,
+.admin-metric,
+.admin-overview__columns,
+.admin-overview__status-list,
+.admin-overview__alerts,
+.admin-overview__actions,
+.admin-overview__status-item,
+.admin-overview__status-copy,
+.admin-overview__alert {
+	min-width: 0;
+	max-width: 100%;
+}
+
 .admin-metric {
 	padding: 18px;
 	display: grid;
@@ -26,6 +39,15 @@
 .admin-metric__hint {
 	color: rgba(43, 32, 21, 0.68);
 	line-height: 1.45;
+}
+
+.admin-metric__label,
+.admin-metric__value,
+.admin-metric__hint,
+.admin-overview__status-title,
+.admin-overview__status-text,
+.admin-overview__alert {
+	overflow-wrap: anywhere;
 }
 
 .admin-overview__columns {
